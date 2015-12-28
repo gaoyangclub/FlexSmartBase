@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:ToolBar xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 >
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+		[Event(name="valueCommit", type="flash.events.Event")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.renderer.DefaultToolBarRenderer;
+			
+			import mx.collections.IList;
+			import mx.events.CollectionEvent;
+			
+			import spark.components.IItemRenderer;
+			
+			private var _labelField:String;
+			public function set labelField(value:String):void
+			{
+				_labelField = value;
+				measureProperties();
+			}
+			public function get labelField():String
+			{
+				return _labelField;
+			}
+			
+			private var _dataProvider:IList;
+			public function get dataProvider():IList
+			{
+				return _dataProvider;
+			}
+
+			public function set dataProvider(value:IList):void
+			{
+				if(_dataProvider != null){
+					_dataProvider.removeEventListener(CollectionEvent.COLLECTION_CHANGE,onCollectionChange);
+				}
+				_dataProvider = value;
+				_dataProvider.addEventListener(CollectionEvent.COLLECTION_CHANGE,onCollectionChange);
+				
+				measureProperties();
+			}
+			
+			protected function onCollectionChange(event:CollectionEvent):void
+			{
+				measureProperties();
+			}
+			
+			private var _itemRenderer:IFactory = new ClassFactory(DefaultToolBarRenderer);//默认用spark的renderer
+			public function set itemRenderer(value:IFactory):void
+			{
+				_itemRenderer = value;
+				measureProperties();
+			}
+			
+			private var showLayout:Boolean;
+			private function measureProperties():void
+			{
+				showLayout = true;
+				invalidateDisplayList();
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				if(showLayout){
+					showLayout = false;
+					updateToorBarRenderer();
+				}
+			}
+			
+			private function updateToorBarRenderer():void
+			{
+				this.removeAllElements();//先全部移除掉
+				
+				var itemIndex:int;
+				for each (var _data:Object in _dataProvider) 
+				{
+					var itemRenderer:IItemRenderer = _itemRenderer.newInstance();//根据工厂生产的renderer
+					itemRenderer.itemIndex = itemIndex ++;
+					addElement(itemRenderer);//添加该实例
+					itemRenderer.selected = itemRenderer.itemIndex == _selectedIndex;//检测选中情况
+					itemRenderer.owner = this;
+					itemRenderer.data = _data;
+					itemRenderer.addEventListener(MouseEvent.MOUSE_DOWN, item_mouseDownHandler,false,0,true);
+				}
+			}
+			
+			public function get selectedItem():Object
+			{
+				if (_selectedIndex < 0 || _dataProvider == null)
+					return undefined;
+				return _dataProvider.length > _selectedIndex ? _dataProvider.getItemAt(_selectedIndex) : undefined;
+			}
+
+			public function set selectedItem(value:Object):void
+			{
+				if(_dataProvider != null){
+					this.selectedIndex = _dataProvider.getItemIndex(value);
+				}else{
+					this.selectedIndex = -1;
+				}
+			}
+			
+			private var _selectedIndex:int = -1;
+			public function get selectedIndex():int
+			{
+				return _selectedIndex;
+			}
+			/**
+			 *  @private
+			 */
+			public function set selectedIndex(value:int):void
+			{
+				_selectedIndex = value;
+				changeCaretSelectedIndex();
+				dispatchEvent(new Event("valueCommit"));//值变化的时候触发
+			}
+
+			private function changeCaretSelectedIndex():void
+			{
+				if(this.numElements > 0){
+					setSelectIndex(_selectedIndex);
+				}else{
+					measureProperties();
+				}
+			}
+			
+			private function setSelectIndex(index:int):void{
+				var numElements:int = this.numElements;
+				for (var i:int = 0; i < numElements; i++) 
+				{
+					var itemRenderer:IItemRenderer = this.getElementAt(i) as IItemRenderer;
+					var itemIndex:int = itemRenderer.itemIndex;
+					itemRenderer.selected = itemIndex == index;//检测选中情况
+				}
+			}
+			
+			protected function item_mouseDownHandler(e:MouseEvent):void
+			{
+				if (e.isDefaultPrevented())
+					return;
+				var itemRenderer:IItemRenderer = e.currentTarget as IItemRenderer;
+				this.selectedIndex = itemRenderer.itemIndex;
+				
+				dispatchEvent(new Event("change"));
+			}
+			
+		]]>
+	</fx:Script>
+	<!--<mx:ToolBar width="100%" height="100%" id="container" />-->
+</mx:ToolBar>

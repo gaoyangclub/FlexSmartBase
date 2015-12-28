@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dialog:ResizeableWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+						  xmlns:s="library://ns.adobe.com/flex/spark"
+						  xmlns:mx="library://ns.adobe.com/flex/mx"
+						  xmlns:dialog="com.best.web.gyorg.library.dialog.*"
+						  width="400"
+						  height="300"
+						  minHeight="50"
+						  minWidth="100"
+						  creationComplete="creation()"
+						  backgroundColor="white"
+						  borderAlpha="0.75"
+						  dropShadowVisible="true"
+						  borderColor="0xd7e0e9"
+						  addedToStage="resizeablewindow1_addedToStageHandler(event)"
+						  removedFromStage="resizeablewindow1_removedFromStageHandler(event)"
+						  skinClass="com.best.web.gyorg.library.skin.PopupDialogSkin" 
+						  mouseDown="resizeablewindow1_mouseDownHandler(event)" 
+						  >
+	<!--  keyDown="keyDownHandler(event)"  -->
+	
+	<dialog:layout>
+		<s:VerticalLayout horizontalAlign="center" gap="0"/>
+	</dialog:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.controller.DropDownControllerModify;
+			
+			import mx.controls.Alert;
+			import mx.core.ContainerGlobals;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.Group;
+			
+			[SkinPart(required="false")]
+			public var buttonArea:Group;//样式中对应的实例
+			
+			private var _needConfirmOnClose:Boolean = false;//确认后关闭
+			public function get needConfirmOnClose():Boolean
+			{
+				return _needConfirmOnClose;
+			}
+			public function set needConfirmOnClose(value:Boolean):void
+			{
+				_needConfirmOnClose = value;
+			}
+			private var closeAlertIsShowed:Boolean = false;
+			
+			public function creation():void
+			{
+				if (this.height > screen.height)
+				{
+					this.height = screen.height - 20;
+				}
+				if (parent != null && this.height > parent.height)
+				{
+					this.height = parent.height - 20;
+				}
+				theMinWidth = this.width;
+				theMinHeight = this.height;//默认设置好最小值
+//				this.setFocus();
+				
+//				resizeablewindow1_addedToStageHandler(null);
+			}
+
+			override protected function partAdded(partName:String, instance:Object):void{
+				super.partAdded(partName,instance);
+				if (partName == "titleDisplay")
+				{
+					(instance as UIComponent).setStyle("styleName","titleWindowTitle");
+				}
+			}
+			
+			override protected function addButtonGroup(partName:String, instance:Object):void
+			{
+				if (partName == "buttonArea")
+				{
+					createButton(instance as Group);
+//					buttonArea.addElement(buttonGroup);//村放入这个容器中
+				}
+			}
+			/**
+			 * 键盘事件处理
+			 */
+			override protected function keyDownHandler(e:KeyboardEvent):void
+			{
+//				var stageFocus:InteractiveObject = focusPane;
+				var stageFocus:InteractiveObject = (FlexGlobals.topLevelApplication.stage as Stage).focus;
+				if(stageFocus != null && (this.contains(stageFocus) || this.skin.contains(stageFocus))){
+					super.keyDownHandler(e);
+					if(e.keyCode == Keyboard.ESCAPE)
+					{
+						confirmOnClose();
+					}else if(e.keyCode == Keyboard.ENTER){
+						if(_defaultButton != null){
+							_defaultButton.dispatchEvent(new MouseEvent(MouseEvent.CLICK));//模拟鼠标点击
+						}
+					}
+				}
+			}
+			
+			override protected function onClose(e:MouseEvent):void{
+				/* PopUpManager.removePopUp(this);
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE)); */
+				confirmOnClose();
+			}
+			
+ 	        private function confirmOnClose():void{
+				if( this.parent == null)return;//已经被关闭了
+				if( _needConfirmOnClose ){
+					if( closeAlertIsShowed == false ){
+						closeAlertIsShowed = true;
+						var alert:Alert = Alert.show("确定关闭当前窗口？","确认关闭",Alert.YES|Alert.NO,null,onAlertClose);
+						alert.addEventListener("alertRemove",function(event:Event):void{
+							closeAlertIsShowed = false;
+						},false,0,true);
+					}
+				}else{
+					closePopupDialog();
+				}
+			}
+			
+			private function onAlertClose(e:CloseEvent):void{
+				if(e.detail == Alert.YES){
+					closeAlertIsShowed = false;
+					closePopupDialog();
+				}else{
+					closeAlertIsShowed = false;
+				}
+			}
+			/**
+			 * 关闭该对话窗口
+			 */
+//			public function closePopupDialog():void
+//			{
+//				PopUpManager.removePopUp(this);
+//				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+//			}
+			
+			public var dropDownController:DropDownControllerModify;
+			public function closePopupDialog():void
+			{
+				if(dropDownController != null){
+					dropDownController.closeDropDown(true);
+				}else{
+					PopUpManager.removePopUp(this);
+				}
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+			
+			public function openPopupDialog(isCenter:Boolean = false,isMode:Boolean = false):void{
+				PopUpManager.addPopUp(this,FlexGlobals.topLevelApplication as DisplayObject,isMode);
+				if(isCenter)PopUpManager.centerPopUp(this);
+			}
+			//暂时没办法解决键盘的焦点获取识别
+			private function instanceAddedToStage(e:Event):void
+			{
+//				this.setFocus();
+//				if(isFocus){
+					stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownHandler);//键盘事件
+//				}
+			}
+			
+			protected function resizeablewindow1_removedFromStageHandler(event:Event):void
+			{
+				stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownHandler);
+			}
+			
+//			private var isFocus:Boolean;
+//			private function onFocusInHandler(e:FocusEvent):void
+//			{
+//				isFocus = true;
+//				if(stage != null)
+//					stage.addEventListener(KeyboardEvent.KEY_DOWN,keyDownHandler);//键盘事件
+//			}
+//			
+//			private function onFocusOutHandler(e:FocusEvent):void
+//			{
+//				isFocus = false;
+//				if(stage != null)
+//					stage.removeEventListener(KeyboardEvent.KEY_DOWN,keyDownHandler);
+//			}
+			private var _defaultButton:IFlexDisplayObject;
+			public override function get defaultButton():IFlexDisplayObject
+			{
+				return _defaultButton;
+			}
+			/**
+			 *  @private
+			 */
+			public override function set defaultButton(value:IFlexDisplayObject):void
+			{
+				_defaultButton = value;
+			}
+			
+			protected function resizeablewindow1_addedToStageHandler(e:Event):void
+			{
+//				var awm:IActiveWindowManager = 
+//					IActiveWindowManager(systemManager.getImplementation("mx.managers::IActiveWindowManager"));
+//				if (awm)
+//					awm.activate(this);//默认进来就获取焦点
+				
+				setStageFocus();
+				instanceAddedToStage(e);
+				addEventListener(FlexEvent.UPDATE_COMPLETE,onUpdateComplete);
+				
+//				if(defaultButton){
+//					(defaultButton as Object).setFocus();
+//				}
+			}
+			
+			protected function onUpdateComplete(event:FlexEvent):void
+			{
+				focusManager.defaultButtonEnabled = false;
+				setStageFocus();
+			}
+			
+			private function setStageFocus():void{
+				(FlexGlobals.topLevelApplication.stage as Stage).focus = this;//焦点恢复到当前窗口
+			}
+			
+			protected function resizeablewindow1_mouseDownHandler(e:MouseEvent):void
+			{
+//				var target:InteractiveObject = e.target as InteractiveObject;
+				var stageFocus:InteractiveObject = (FlexGlobals.topLevelApplication.stage as Stage).focus;
+				if(stageFocus == null || !this.contains(stageFocus) && !this.skin.contains(stageFocus)){
+					setStageFocus();//获得当前焦点
+				}
+			}
+		]]>
+	</fx:Script>
+</dialog:ResizeableWindow>

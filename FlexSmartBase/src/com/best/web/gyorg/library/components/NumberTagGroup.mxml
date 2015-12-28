@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 minWidth="10" minHeight="10"
+		 >
+	<fx:Script>
+		<![CDATA[
+			
+			private var _count:int;
+			[Bindable]
+			public function get count():int
+			{
+				return _count;
+			}
+			/**
+			 * 显示个数
+			 * */
+			public function set count(value:int):void
+			{
+				_count = value;
+				showViewCount();
+			}
+			[Bindable]
+			private var _borderAlpha:Number = 1;
+			/**
+			 * 线条透明度
+			 * */
+			public function set borderAlpha(value:Number):void
+			{
+				_borderAlpha = value;
+			}
+			[Bindable]
+			private var _borderColor:uint = 0xFFFFFF;
+			/**
+			 * 线条色
+			 * */
+			public function set borderColor(value:uint):void
+			{
+				_borderColor = value;
+			}
+			[Bindable]
+			private var _borderWeight:Number = 1;
+			/**
+			 * 线条粗细
+			 * */
+			public function set borderWeight(value:Number):void
+			{
+				_borderWeight = value;
+			}
+			[Bindable]
+			private var _backgroundColor:uint = 0xc53b35;
+			/**
+			 * 背景色
+			 * */
+			public function set backgroundColor(value:uint):void
+			{
+				_backgroundColor = value;
+			}
+			[Bindable]
+			private var _backgroundAlpha:Number = 1;
+			/**
+			 * 背景透明度
+			 * */
+			public function set backgroundAlpha(value:Number):void
+			{
+				_backgroundAlpha = value;
+			}
+			
+			[Bindable]
+			private var viewCount:String = "0";//真正显示的数字
+//			[Bindable]
+//			private var fontSize:int = 14;
+			private function showViewCount():void
+			{
+				this.toolTip = _count + '';
+				if(_count < 1000){
+					viewCount = _count + '';
+				}else if(_count < 10000){
+					viewCount = int(_count / 1000) + 'k';
+				}else if(_count < 100000){
+					viewCount = int(_count / 10000) + 'w';
+				}else{
+					viewCount = '9w+';
+				}
+				//根据个数来显示字号
+				updateFontSize();
+			}
+			
+			private function updateFontSize():void
+			{
+//				if(viewCount && viewCount.length > 0){
+//					if(viewCount.length <= 2){
+//						fontSize = unscaledWidth / 3 * 1.5;
+//					}else{
+//						fontSize = unscaledWidth / viewCount.length * 1.5;
+//					}
+//				}
+//				fontSize = unscaledWidth / 2;
+				var fontSize:Number = this.getStyle("fontSize");//获取当前字号
+//				paddingVertical = fontSize / 8;
+				if(!viewCount || viewCount.length <= 1){//小于1个数据
+//					paddingHorizontal = 0;
+//					paddingHorizontal = (countLabel.height - countLabel.width) / 2;
+					backRect.width = backRect.height = fontSize * 1.2;
+					radius = 15;//fontSize * 3 / 4;
+				}else{
+//					paddingHorizontal = fontSize / 4;
+					radius = fontSize * 2 / 5;// + .8999999;
+					backRect.height = fontSize * 1.2;
+					backRect.width = viewCount.length * fontSize;
+				}
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+				updateFontSize();
+			}
+//			[Bindable]
+//			private var paddingHorizontal:Number = 6;
+//			[Bindable]
+//			private var paddingVertical:Number = 3;
+			[Bindable]
+			private var radius:Number = 10;
+		]]>
+	</fx:Script>
+	<s:Rect id="backRect" radiusX="{radius}" radiusY="{radius}" left="0" right="0" top="0" bottom="0" >
+		<s:fill>
+			<s:SolidColor color="{_backgroundColor}" alpha="{_backgroundAlpha}"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke alpha="{_borderAlpha}" color="{_borderColor}" weight="{_borderWeight}" joints="miter" caps="round" scaleMode="none" />
+			<!--<s:LinearGradientStroke rotation="90" weight="{_borderWeight}" >
+				<s:GradientEntry color="{_borderColor}" alpha="{_borderAlpha}" ratio="0.0" />
+				<s:GradientEntry color="{_borderColor}" alpha="{_borderAlpha}" ratio="0.001" />
+				<s:GradientEntry color="{_borderColor}" alpha="{_borderAlpha}" ratio="0.0011" />
+				<s:GradientEntry color="{_borderColor}" alpha="{_borderAlpha}" ratio="0.965" />
+				<s:GradientEntry color="{_borderColor}" alpha="{_borderAlpha}" ratio="0.9651" />
+			</s:LinearGradientStroke>-->
+		</s:stroke>
+	</s:Rect>
+	<!--<s:Ellipse width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="{_backgroundColor}" alpha="{_backgroundAlpha}"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke alpha="{_borderAlpha}" color="{_borderColor}" weight="{_borderWeight}"/>
+		</s:stroke>
+	paddingLeft="{paddingHorizontal}" paddingRight="{paddingHorizontal}" paddingTop="{paddingVertical}" paddingBottom="{paddingVertical}" 
+	</s:Ellipse>-->
+	<s:Label id="countLabel" 
+		text="{viewCount}" horizontalCenter="-0.5" verticalCenter="1" />
+</s:Group>

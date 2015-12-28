@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 verticalCenter="0" width="16" height="16" buttonMode="true"
+		 toolTip="清空"
+		 >
+	<fx:Script>
+		<![CDATA[
+			[Bindable]
+			public var solidColor:uint;//填充色
+			[Bindable]
+			public var solidAlpha:Number = 0.6;//填充色
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Path id="cross" horizontalCenter="0" verticalCenter="0"
+			 data="M 0.0 0.0 L 7.0 7.0 M 7.0 0.0 L 0.0 7.0">
+		<s:stroke>
+			<s:SolidColorStroke color="{solidColor}" alpha="{solidAlpha}" caps="round" weight="2" pixelHinting="true"/>
+		</s:stroke>
+	</s:Path>
+</s:Group>

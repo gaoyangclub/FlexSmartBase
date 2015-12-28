@@ -1,0 +1,571 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" 
+				   xmlns:mx="library://ns.adobe.com/flex/mx"
+				   creationComplete="areaCreationComplete(event)"
+				   >
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace components "com.best.web.htyt.view.component.date.gy.components.*";
+		@namespace dialog "com.best.web.htyt.view.component.date.gy.dialog.*";
+		@namespace graphics "com.graphics.*";
+		.areaTab{
+			tabHeight:25;
+			tabStyleName:"myTab";
+			firstTabStyleName:"myTab";
+			lastTabStyleName: "myTab";
+		}
+		.myTab{
+			fontFamily:宋体;
+			fontSize:13;
+			fontWeight:bold;
+			up-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorDefaultSkin");
+			down-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorDefaultSkin");
+			over-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorDefaultSkin");
+			disabled-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorDefaultSkin");
+			selected-up-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorSelectedSkin");
+			selected-down-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorSelectedSkin");
+			selected-over-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorSelectedSkin");
+			selected-disabled-skin:ClassReference("com.best.web.gyorg.library.skin.TabnavitorSelectedSkin");
+		}
+	</fx:Style>
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+		[Event(name="changing", type="flash.events.Event")]
+		[Event(name="selectedOver", type="flash.events.Event")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			
+			import spark.components.HGroup;
+			import spark.components.Label;
+			import spark.components.NavigatorContent;
+			import spark.components.VGroup;
+			import spark.layouts.VerticalLayout;
+			
+			public override function set width(value:Number):void{
+				super.width = value;
+				measureTabWidth();
+			}
+			[Bindable]
+			private var _tabWidth:Number = 80;
+			private function measureTabWidth():void{
+				if(_levelsName != null && _levelsName.length > 0){
+					_tabWidth = this.width / _levelsName.length;
+				}
+			}
+			
+			private var _childNodeField:String = "child";//子节点的名字
+			public function get childNodeField():String
+			{
+				return _childNodeField;
+			}
+			public function set childNodeField(value:String):void
+			{
+				_childNodeField = value;
+				measureProperties();
+			}
+			
+			private var _labelField:String = "label";
+			public function get labelField():String
+			{
+				return _labelField;
+			}
+			public function set labelField(value:String):void
+			{
+				_labelField = value;
+				measureProperties();
+			}
+			private var _dateProvider:ArrayCollection;//当有数据变化的时候也可以即使刷新
+			public function set dateProvider(value:ArrayCollection):void
+			{
+//				if(_dateProvider != null){
+//					_dateProvider.removeEventListener(CollectionEvent.COLLECTION_CHANGE,onCollectionChange);
+//				}
+				_dateProvider = value;
+//				_dateProvider.addEventListener(CollectionEvent.COLLECTION_CHANGE,onCollectionChange);
+				measureProperties();
+			}
+			
+			private function onCollectionChange(e:CollectionEvent):void
+			{
+				measureProperties();
+			}
+			
+			[Bindable]
+			private var _levelsName:Array;//[省。市，区，街道...]
+			public function set levelsName(value:Array):void
+			{
+				_levelsName = value;//创建几个
+				measureTabWidth();
+				measureProperties();
+			}
+//			private var _levelField:String = "label";
+//			public function set levelField(value:String):void
+//			{
+//				_levelField = value;
+//				measureProperties();
+//			}
+			private var _groupsName:Array;//[[A,B,C,D,E..G],[H,I,J,K,...]
+			/**
+			 * 分类字段组合二维数组
+			 *   */
+			public function set groupsName(value:Array):void
+			{
+				_groupsName = value;
+				measureProperties();
+			}
+			private var _groupField:String = "group";//匹配的所属分组字段名
+			public function set groupField(value:String):void
+			{
+				_groupField = value;
+				measureProperties();
+			}
+			
+			private var showLayout:Boolean;
+			private function measureProperties():void
+			{
+//				addEventListener(Event.ENTER_FRAME,onUpdate);
+				showLayout = true;
+				invalidateDisplayList();
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				if(showLayout){
+					showLayout = false;
+					updateTabNavigator();
+				}
+			}
+			
+			private function onUpdate(e:Event):void
+			{
+				removeEventListener(Event.ENTER_FRAME,onUpdate);
+				if(areaTab != null){//说明初始化未完成
+					updateTabNavigator();
+				}
+			}
+			
+			private function areaCreationComplete(e:FlexEvent):void
+			{
+				updateTabNavigator();
+//				areaTab.addEventListener(FlexEvent.CHANGING,areaTab_changeHandler);
+			}
+			
+//			private function addToStage(e:Event):void
+//			{
+//				updateTabNavigator();
+//			}
+			
+			private function updateTabNavigator():void
+			{
+				updateNavigatorContent();
+				updateFirstContent();
+			}
+			
+			private function createContent(label:String):NavigatorContent{
+				var nc:NavigatorContent = new NavigatorContent();
+				nc.percentWidth = nc.percentHeight = 100;
+//				nc.setStyle("borderVisible",false);
+				nc.label = label;
+				var vLayout:VerticalLayout = new VerticalLayout();
+				vLayout.horizontalAlign = "left";
+				vLayout.paddingTop = -10;
+				vLayout.paddingBottom = 0;
+				vLayout.paddingLeft = vLayout.paddingRight = 3;
+				vLayout.gap = 0;
+				nc.layout = vLayout;
+				return nc;
+			}
+			
+//			[Bindable]
+//			private var _columnCount:int = 5;//5列
+//			public function get columnCount():int
+//			{
+//				return _columnCount;
+//			}
+//
+//			public function set columnCount(value:int):void
+//			{
+//				_columnCount = value;
+//			}
+//			
+//			[Bindable]
+//			private var _columnWidth:Number = 50;
+//			public function set columnWidth(value:Number):void
+//			{
+//				_columnWidth = value;
+//				measureProperties();
+//			}
+			
+			private var _listHorizontalGap:Number = 5;
+			public function set listHorizontalGap(value:Number):void
+			{
+				_listHorizontalGap = value;
+			}
+			private var _listVerticalGapGap:Number = 1;
+			public function set listVerticalGapGap(value:Number):void
+			{
+				_listVerticalGapGap = value;
+			}
+			private var _tagPaddingTop:Number = 3;
+			public function set tagPaddingTop(value:Number):void
+			{
+				_tagPaddingTop = value;
+			}
+			
+			private function createHGroupArea():HGroup{
+				var h:HGroup = new HGroup();
+				h.percentWidth = 100;
+				h.paddingTop = h.paddingBottom = 0;
+				h.gap = 5;
+				var vg:VGroup = new VGroup();
+//				vg.percentWidth = 100;
+				vg.paddingTop = _tagPaddingTop;
+				h.addElement(vg);
+				var label:Label = new Label();
+//				label.height = 50;
+//				label.setStyle("lineHeight",35);
+				label.setStyle("verticalAlign","middle");
+				label.minWidth = 35;
+				vg.addElement(label);
+//				label.setStyle("fontSize",16);
+//				label.percentHeight = 100;
+				
+				var toolList:ToolBarList = new ToolBarList();
+				toolList.setStyle("horizontalGap",_listHorizontalGap);
+				toolList.setStyle("verticalGap",_listVerticalGapGap);
+				toolList.labelField = _labelField;
+				toolList.percentWidth = 100;
+				toolList.percentHeight = 100;
+				h.addElement(toolList);
+				
+//				var list:List = new List();
+//				list.labelField = _labelField;//显示文本的字段
+//				list.percentWidth = 100;
+//				list.percentHeight = 100;
+//				list.useVirtualLayout = false;//不重复使用虚拟
+////				list.itemRenderer = new 
+//				list.setStyle("contentBackgroundAlpha",0);
+//				list.setStyle("borderVisible",false);
+//				
+//				var tLayout:TileLayout = new TileLayout();
+//				tLayout.columnWidth = _columnWidth;
+////				tLayout.columnAlign = "justifyUsingWidth";
+////				tLayout.verticalAlign = "middle";
+////				tLayout.horizontalAlign = "left";
+////				tLayout.columnAlign = "justifyUsingWidth";
+//				tLayout.requestedColumnCount = _columnCount;//4;
+////				tLayout.rowHeight = 25;
+//				tLayout.requestedRowCount = -1;
+//				tLayout.horizontalGap = 0;
+//				tLayout.verticalGap = -3;
+////				tLayout.rowAlign = "justifyUsingHeight";
+////				tLayout.clipAndEnableScrolling = true;
+////				tLayout.rowAlign="justifyUsingGap";
+//				list.layout = tLayout;
+//				h.addElement(list);
+				return h;
+				/* <s:layout>
+					<s:TileLayout verticalAlign="middle" requestedColumnCount="3" />
+				</s:layout> */
+			}
+			
+			private function openHGroupActive(h:HGroup):void{
+				var list:ToolBarList = h.getElementAt(1) as ToolBarList;
+				list.addEventListener(MouseEvent.CLICK,onListChange);
+			}
+			
+			private function closeHGroupActive(h:HGroup):void{
+				var list:ToolBarList = h.getElementAt(1) as ToolBarList;
+				list.removeEventListener(MouseEvent.CLICK,onListChange);
+			}
+			
+			private function setHGroupData(h:HGroup,text:String,ap:ArrayCollection):void{
+				var label:Label = (h.getElementAt(0) as VGroup).getElementAt(0) as Label;
+				label.text = text;
+				var list:ToolBarList = h.getElementAt(1) as ToolBarList;
+				list.dataProvider = ap;
+			}
+			
+			private function updateNavigatorContent():void
+			{
+				if(areaTab != null){
+					var index:int = areaTab.selectedIndex;
+					areaTab.removeAll();
+					for each (var levelName:String in _levelsName) 
+					{
+						areaTab.addItem(createContent(levelName));
+					}
+					if(index < totalLevels){
+						areaTab.selectedIndex = index;//重新切回去
+					}
+				}
+			}
+			/**
+			 *	有_levelsName长度确定几个等级
+			 *   */
+			public function get totalLevels():int{
+				return _levelsName != null ? _levelsName.length : 0;
+			}
+			/**
+			 * 现在选中什么等级
+			 *   */
+			public function get selectedLevel():int{
+				return areaTab.selectedIndex;
+			}
+			public function set selectedLevel(value:int):void{
+				areaTab.selectedIndex = value;
+			}
+			/**
+			 * data类型为Array ArrayCollection Vector 或者类似结构的数组可以遍历即可
+			 *   */
+			public function changeTabData(level:int,data:Object):void{
+				var divideArray:Array = divideDataToArray(data);//已经分好组了
+				
+				var nc:NavigatorContent = areaTab.getItemAt(level) as NavigatorContent;
+				focusContent(nc,level);
+				//判断下子序列个数是否和数据个数对应
+				measureContentData(nc,divideArray);
+//				if(data != null && data.length == 1){//如果仅仅只有一个数据 直接选中后跳转
+//					var nextFunc:Function = function():void{
+//						if(throwChangingEvent()){//成功变化 可以阻止该事件发生
+//							turnNextLevel(data[0]);
+//						}
+//					}
+//					TimerManager.setTimeOut(500,nextFunc);
+//				}
+			}
+			
+			private function focusContent(nc:NavigatorContent,level:int):void
+			{
+				nc.enabled = true;
+				for (var i:int = level + 1; i < totalLevels; i++) 
+				{
+					var nextContent:NavigatorContent = areaTab.getItemAt(i) as NavigatorContent;
+					nextContent.enabled = false;
+				}
+			}
+			//将数据进行分组运算
+			private function divideDataToArray(data:Object):Array
+			{
+				if(_groupsName == null || _groupsName.length == 0){//不需要分组
+					return [dataToCollection(data)];
+				}
+				var divideArray:Array = [];
+				divideArray.length = _groupsName.length;
+				for each (var obj:Object in data) 
+				{
+					if(!obj.hasOwnProperty(_groupField) || !obj[_groupField]){//表示数据不需要分组
+						return [dataToCollection(data)];
+//						trace(obj[_labelField] + "  没有设置分组!!!");
+					}else{
+						divideData(divideArray,obj);
+					}
+				}
+				return divideArray;
+			}
+			
+			private function dataToCollection(data:Object):ArrayCollection{
+				var ac:ArrayCollection = new ArrayCollection();
+				for each (var obj:Object in data) 
+				{
+					ac.addItem(obj);
+				}
+				return ac;
+			}
+			
+			private function divideData(divideArray:Array,obj:Object):void{
+				for (var i:int = _groupsName.length - 1; i >= 0 ; i--) 
+				{
+					var childGroup:Array = _groupsName[i];
+					for each (var gName:String in childGroup) 
+					{
+						if(gName == obj[_groupField]){
+							var divideCollection:ArrayCollection = divideArray[i];
+							if(divideCollection == null){
+								divideCollection = divideArray[i] = new ArrayCollection();
+							}
+							divideCollection.addItem(obj);//组别已经分好了
+							return;
+						}
+					}
+				}
+			}
+			
+			private function measureContentData(nc:NavigatorContent, divideArray:Array):void
+			{
+				var tempArray:Array = [];
+				var divideLength:int = divideArray.length;
+				for (var j:int = 0; j < divideLength; j++) 
+				{
+					var divideCollection:ArrayCollection = divideArray[j];
+					if(divideCollection != null && divideCollection.length > 0){//有效数据
+						if(_groupsName != null && _groupsName.length > 0){//不需要分组
+							var obj:Object = divideCollection.getItemAt(0);
+							if(obj != null && obj.hasOwnProperty(_groupField) && obj[_groupField]){//表示数据不需要分组
+								var childGroup:Array = _groupsName[j];
+								var label:String = childGroup[0] + "-" + childGroup[childGroup.length - 1];
+							}
+						}
+						tempArray.push({label:label,data:divideCollection});
+					}
+				}
+				var nElements:int = nc.numElements;
+				if(nElements > tempArray.length){//视图比数据量大
+					for (var i:int = nElements - 1; i > tempArray.length - 1; i--) 
+					{
+						var hg:HGroup = nc.getElementAt(i) as HGroup;
+						closeHGroupActive(hg);
+						nc.removeElement(hg);//多余的先释放掉
+					}
+				}
+				var tempLength:Number = tempArray.length;
+				for (i = 0; i < tempLength; i++) 
+				{
+					var tempObj:Object = tempArray[i];
+					if(nc.numElements > i){
+						hg = nc.getElementAt(i) as HGroup;
+						openHGroupActive(hg);
+					}else{
+						hg = createHGroupArea();
+						openHGroupActive(hg);
+						nc.addElement(hg);
+					}
+					setHGroupData(hg,tempObj.label,tempObj.data);
+				}
+				if(autoSingleTurnNext && tempLength == 1 && tempObj.data && tempObj.data.length == 1){//仅仅只有一个数据
+					var onlyHG:HGroup = hg;
+					var list:ToolBarList = onlyHG.getElementAt(1) as ToolBarList;
+					list.selectedIndex = 0;//直接选中
+					onListChange(null,list);
+				}
+			}
+			
+			/** 当前页面仅有一个选项自动选中 */
+			public var autoSingleTurnNext:Boolean;
+			
+			//第一个先显示
+			private function updateFirstContent():void
+			{
+//				var uc:URLRequest  = new URLRequest();
+//				uc.method = URLRequestMethod.POST;
+				changeTabData(0,_dateProvider);
+			}
+			
+			private function onListChange(e:Event,targetList:ToolBarList = null):void
+			{
+				if(e != null){
+					targetList = e.currentTarget as ToolBarList;
+				}
+				if(targetList != null && targetList.selectedItem != null){
+					clearOtherList(targetList);//将当前层的其他List组关闭
+					
+					_selectedItem = targetList.selectedItem;
+					if(throwChangingEvent()){//成功变化 可以阻止该事件发生
+						turnNextLevel(_selectedItem);
+					}
+				}
+			}
+			private var _selectedItem:Object;
+			public function get selectedItem():Object
+			{
+				return _selectedItem;
+			}
+			
+			private function throwChangingEvent():Boolean
+			{
+//				var ie:ItemClickEvent = new ItemClickEvent(ItemClickEvent.ITEM_CLICK);
+				return dispatchEvent(new Event("changing"));
+			}
+			
+			private function throwChange():void{
+				dispatchEvent(new Event("change"));
+			}
+			
+			private function throwSelectedOver():void
+			{
+				dispatchEvent(new Event("selectedOver"));
+			}
+			
+			private function clearOtherList(targetList:ToolBarList):void
+			{
+				var nc:NavigatorContent = areaTab.getItemAt(selectedLevel) as NavigatorContent;
+				var nElements:int = nc.numElements;
+				for (var i:int = nElements - 1; i >= 0; i--) 
+				{
+					var h:HGroup = nc.getElementAt(i) as HGroup;
+					var list:ToolBarList = h.getElementAt(1) as ToolBarList;
+					if(list != targetList){
+						list.selectedIndex = -1;//都未选中状态
+						list.selectedItem = null;
+					}
+				}
+			}
+			
+			private function turnNextLevel(selectedItem:Object):void
+			{
+				if(areaTab.selectedIndex + 1 < totalLevels){
+					if(selectedItem.hasOwnProperty(_childNodeField)){
+						var data:Object = selectedItem[_childNodeField];
+					}
+					areaTab.selectedIndex ++;
+					changeTabData(areaTab.selectedIndex,data);
+					throwChange();
+				}else{
+					throwSelectedOver();
+				}
+			}
+			
+//			private function areaTab_changeHandler(e:IndexChangedEvent):void
+//			{
+//				e.preventDefault();
+////				areaTab.selectedIndex = e.oldIndex;//回到原来
+//			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<!-- tabWidth="{areaTab.width / _levelsName.length}" -->
+	<mx:TabNavigator id="areaTab" width="100%" borderVisible="false" backgroundColor="#E0ECFA" fontSize="12" tabWidth="{_tabWidth}"
+					 styleName="areaTab">
+		<!--<s:NavigatorContent width="100%" height="100%" label="选项卡 1" >
+			<s:List x="6" y="10" width="100%" height="100%" fontSize="14" borderVisible="false">
+				<s:layout>
+					<s:TileLayout rowAlign="justifyUsingGap" verticalAlign="middle" requestedColumnCount="3" />
+				</s:layout>
+				<s:ArrayCollection>
+					<fx:String >北京</fx:String>
+					<fx:String >天津</fx:String>
+					<fx:String >乌鲁木齐</fx:String>
+					<fx:String >北京</fx:String>
+					<fx:String >乌鲁木齐</fx:String>
+					<fx:String >北京</fx:String>
+					<fx:String >天津</fx:String>
+					<fx:String >乌鲁木齐</fx:String>
+					<fx:String >北京</fx:String>
+					<fx:String >天津</fx:String>
+					<fx:String >乌鲁木齐</fx:String>
+					<fx:String >北京</fx:String>
+					<fx:String >天津</fx:String>
+					<fx:String >特别行政区啊</fx:String>
+					<fx:String >乌鲁木齐</fx:String>
+					<fx:String >北京</fx:String>
+					<fx:String >乌鲁木齐</fx:String>
+					<fx:String >北京</fx:String>
+				</s:ArrayCollection>
+			</s:List>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="选项卡2">
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="选项卡n">
+		</s:NavigatorContent>-->
+	</mx:TabNavigator>
+	
+</s:BorderContainer>

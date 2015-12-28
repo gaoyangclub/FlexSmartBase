@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:gyorg="com.best.web.gyorg.*" 
+		 xmlns:components="com.best.web.gyorg.library.components.*"
+		 width="280" height="26" initialize="init(event)" >
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.controller.DropDownControllerModify;
+			
+			import mx.core.FlexGlobals;
+			import mx.core.UIComponent;
+			import mx.events.DropdownEvent;
+			import mx.events.FlexEvent;
+			import mx.formatters.DateFormatter;
+			import mx.managers.PopUpManager;
+			
+			import spark.filters.DropShadowFilter;
+			
+			[Bindable]
+			private var _dayGap:int = 6;
+			public function set dayGap(value:int):void
+			{
+				_dayGap = value;
+			}
+			/**
+			 * 设置间隔的天数
+			 * */
+			public function get dayGap():int
+			{
+				return _dayGap;
+			}
+			/**
+			 * 重置时间
+			 * */
+			public function resetDate():void{
+				var nowDate:Date = new Date();
+				var d:Date = getDate(nowDate);
+				d.date -= _dayGap;
+				var e:Date = getDate(nowDate);
+				e.date += 1;
+				e.milliseconds -= 1;
+				//				ed.date=e;
+				_startDate = d;
+				_endDate = e;
+				//				bg.date=d;
+			}
+			
+			private function getDate(value:Date):Date
+			{
+				return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+			}
+			
+			private function init(event:FlexEvent):void
+			{
+//				initDateArea();
+				initDropDown();
+				if(myDateChooser.parent == this){
+					this.removeElement(myDateChooser);
+					myDateChooser.includeInLayout = myDateChooser.visible = true;
+				}
+			}
+			
+//			private var _dropDownSystemManager:SystemManager;
+//			public function set dropDownSystemManager(value:SystemManager):void
+//			{
+//				_dropDownSystemManager = value;
+//				if(dropDownController != null)dropDownController.systemManager = value; 
+//			}
+			private var dropDownController:DropDownControllerModify;
+			private function initDropDown():void
+			{
+				dropDownController = new DropDownControllerModify();
+//				if(_dropDownSystemManager == null){
+					dropDownController.systemManager = FlexGlobals.topLevelApplication.systemManager;
+//				}else{
+//					dropDownController.systemManager = _dropDownSystemManager;
+//				}
+				dropDownController.openComponent = clickGroup;//当划入小时触发
+				dropDownController.dropDown = myDateChooser;
+//				dropDownController.rollOverOpenDelay = 300;
+				dropDownController.rollOutCloseDelay = 100;
+				dropDownController.addEventListener(DropdownEvent.OPEN,onHourDropOpen);
+				dropDownController.addEventListener(DropdownEvent.CLOSE,onHourDropClose);
+			}
+			
+			protected function onHourDropOpen(event:Event):void
+			{
+//				myDateChooser.visible = true;
+				PopUpManager.addPopUp(myDateChooser,this);
+//				clickGroup.setFocus();
+				//设置全局坐标
+//				clickGroup.s
+				var globalPoint:Point = this.localToGlobal(new Point(0,clickGroup.y + clickGroup.height));
+				//全局坐标
+				myDateChooser.x = globalPoint.x;
+				if(globalPoint.y + myDateChooser.height > stage.stageHeight){//超过场景高度
+					myDateChooser.y = globalPoint.y - myDateChooser.height - clickGroup.height;
+				}else{
+					myDateChooser.y = globalPoint.y;
+				}
+				myDateChooser.setFocus();//焦点到日期控件上
+			}
+			
+			protected function onHourDropClose(e:Event = null):void
+			{
+//				if(myDateChooser.parent == this){
+//					this.removeElement(myDateChooser);
+//				}else{
+				PopUpManager.removePopUp(myDateChooser);
+				//				}
+				//				myDateChooser.visible = false;
+				txtInfo.setFocus();//焦点恢复到当前
+//				txtInfo.selectRange(-1,-1);
+			}
+			
+//			private var myDateChooser:HGroup;
+//			private function initDateArea():void
+//			{
+//				myDateChooser = new HGroup();
+//				myDateChooser.gap = -2;
+//				var cdc:CompoundDateChooser = new CompoundDateChooser();
+//				myDateChooser.addElement(cdc);
+//				var cdc:CompoundDateChooser = new CompoundDateChooser();
+//				myDateChooser.addElement(cdc);
+//			}
+			
+			//起始时间变化
+			protected function onStartChange(e:Event):void
+			{
+				_startDate = dateStart.selectDate;
+				showStartTime();
+				dispatchEvent(new Event("startChange"));//抛出事件后让外面的数据双向绑定
+				dispatchChange();
+			}
+			//终止时间变化
+			protected function onEndChange(e:Event):void
+			{
+				_endDate = dateEnd.selectDate;
+				showEndTime();
+				dispatchEvent(new Event("endChange"));//抛出事件后让外面的数据双向绑定
+				dispatchChange();
+			}
+			
+			private var _startDate:Date;
+			[Bindable(event="startChange")]
+			public function get startDate():Date
+			{
+				if(_startDate!=null){
+					return new Date(_startDate.time);
+				}else{
+					return null;
+				}
+			}
+			/**
+			 * 起始时间
+			 * */
+			public function set startDate(value:Date):void
+			{
+				if(value!=null){
+					_startDate=new Date(value.time);
+					
+				}else{
+					_startDate=null;
+				}
+				dateStart.selectDate = _startDate;//设置起点
+//				showStartTime();
+			}
+			private var _endDate:Date;
+			[Bindable(event="endChange")]
+			public function get endDate():Date
+			{
+				if(_endDate!=null){
+					return new Date(_endDate.time);
+				}else{
+					return null;
+				}
+				return _endDate;
+			}
+			/**
+			 * 终止时间
+			 * */
+			public function set endDate(value:Date):void
+			{
+				if(value!=null){
+					_endDate=new Date(value.time);
+					
+				}else{
+					_endDate=null;
+				}
+				dateEnd.selectDate=_endDate;//设置终点
+//				showEndTime();
+			}
+			
+			private function showStartTime():void{
+				if(_startDate != null){
+					var df:DateFormatter = new DateFormatter();
+					df.formatString = "YYYY-MM-DD";
+					var dateLabel:String = df.format(_startDate);
+					df.formatString = "JJ:NN";
+					var hourLabel:String = df.format(_startDate);
+				}
+				txtDateStart.text = dateLabel;
+				txtHourStart.text = hourLabel;//_startDate.hours + ":" + _startDate.minutes;
+//				showTimeLabel();
+			}
+			
+			private function showEndTime():void
+			{
+				if(_endDate != null){
+					var df:DateFormatter = new DateFormatter();
+					df.formatString = "YYYY-MM-DD";
+					var dateLabel:String = df.format(_endDate);
+					df.formatString = "JJ:NN";
+					var hourLabel:String = df.format(_endDate);
+				}
+				txtDateEnd.text = dateLabel;
+				txtHourEnd.text = hourLabel;
+//				showTimeLabel();
+			}
+			
+			
+			private function getTempSapce(count:int,keyChar:String):String{
+				var space:String = "";
+				for (var i:int = 0; i < count; i++) 
+				{
+					space += keyChar;
+				}
+				return space;
+			}
+			
+			private function showTimeLabel():void{
+				var count:int = 5;
+				var keyChar:String = "　";
+				
+				var dateLabelStart:String = getTempSapce(count,keyChar);
+				var hourLabelStart:String = getTempSapce(count,keyChar);
+				if(_startDate != null){
+					var df:DateFormatter = new DateFormatter();
+					df.formatString = "YYYY-MM-DD";
+					dateLabelStart = df.format(_startDate);
+					df.formatString = "JJ:NN";
+					hourLabelStart = df.format(_startDate);
+					var hasDate:Boolean = true;
+				}
+				var dateLabelEnd:String = getTempSapce(count,keyChar);
+				var hourLabelEnd:String = getTempSapce(count,keyChar);
+				if(_endDate != null){
+					df = new DateFormatter();
+					df.formatString = "YYYY-MM-DD";
+					dateLabelEnd = df.format(_endDate);
+					df.formatString = "JJ:NN";
+					hourLabelEnd = df.format(_endDate);
+					hasDate = true;
+				}
+				if(hasDate){
+					txtInfo.text = dateLabelStart + "　" + hourLabelStart + "　至　" + dateLabelEnd + "　" + hourLabelEnd;
+				}else{
+					txtInfo.text = "至";
+				}
+			}
+			
+			private function onClickClose(e:MouseEvent):void
+			{
+//				onHourDropClose();//手动关闭
+				dropDownController.closeDropDown(false,true);
+			}
+			
+			public function getPopupDialogInstance():UIComponent{
+				return myDateChooser;
+			}
+//			[Bindable]
+//			private var _showNowDayLast:Boolean = true;
+//			public function get showNowDayLast():Boolean
+//			{
+//				return _showNowDayLast;
+//			}
+//			/**
+//			 * 是否显示到当前天的最后时刻23:59为止 默认显示
+//			 *  */
+//			public function set showNowDayLast(value:Boolean):void
+//			{
+//				_showNowDayLast = value;
+//			}
+			
+			private function dispatchChange():void
+			{
+				dispatchEvent(new Event("change"));//时间变化
+			}
+			
+			[Bindable]
+			private var _showClear:Boolean = true;
+			/**
+			 * 是否显示清空按钮(默认显示)
+			 * */
+			public function set showClear(value:Boolean):void
+			{
+				_showClear = value;
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<!--<s:Group width="100%" height="100%">
+		<s:Rect width="100%" height="100%">
+			<s:fill>
+				<s:SolidColor color="0xFFFFFF" />
+			</s:fill>
+			<s:stroke>
+				<s:SolidColorStroke color="0xc6c6c6" />
+			</s:stroke>
+		</s:Rect>
+		<s:HGroup id="clickGroup" buttonMode="true" width="100%" height="100%" gap="0"
+				  horizontalAlign="center" verticalAlign="middle" fontSize="14">
+			<s:Label color="#5b5b5b" id="txtDateStart" width="30%"/>
+			<s:Label color="#888888" id="txtHourStart" width="13%"/>
+			<s:Label text="至" textAlign="center" width="8%" color="#b8b8b8"/>
+			<s:Label color="#5b5b5b" id="txtDateEnd" width="30%" />
+			<s:Label color="#888888" id="txtHourEnd" width="13%" />
+		</s:HGroup>
+	</s:Group>-->
+	<!--<s:TextInput text="测试文本" height="100%" width="100%" />-->
+	<s:TextInput fontSize="14" id="txtInfo" width="100%" height="100%" useHandCursor="false" editable="false" />
+	<s:HGroup id="clickGroup" buttonMode="true" width="100%" height="100%" gap="5"
+			  horizontalAlign="center" verticalAlign="middle" fontSize="14" paddingLeft="5" paddingRight="5">
+		<s:HGroup width="100%" height="100%" gap="0" horizontalAlign="center" verticalAlign="middle" >
+			<s:Label color="#5b5b5b" id="txtDateStart" />
+			<s:Spacer width="100%" />
+			<s:Label color="#888888" id="txtHourStart" />
+		</s:HGroup>
+		<s:Label text="至" textAlign="center" color="#b8b8b8"/>
+		<s:HGroup width="100%" height="100%" gap="0" horizontalAlign="center" verticalAlign="middle" >
+			<s:Label color="#5b5b5b" id="txtDateEnd" />
+			<s:Spacer width="100%" />
+			<s:Label color="#888888" id="txtHourEnd" />
+		</s:HGroup>	
+	</s:HGroup>
+	<s:BorderContainer defaultButton="{btnConfirm}" id="myDateChooser" filters="{[new DropShadowFilter(3,45,0,.5)]}" visible="false" includeInLayout="false">
+		<s:layout>
+			<s:VerticalLayout gap="1" />
+		</s:layout>
+		<s:HGroup gap="0" height="100%">
+			<components:CompoundDateChooser showNowDayFirst="true" id="dateStart" change="onStartChange(event)" showClear="{_showClear}"/>
+			<mx:VRule height="100%" strokeColor="#A7A7A7" />
+			<!--<s:BorderContainer width="1" height="100%" borderColor="#A7A7A7" />-->
+			<components:CompoundDateChooser showNowDayLast="false" id="dateEnd" change="onEndChange(event)" showClear="{_showClear}"/>
+		</s:HGroup>
+		<mx:HRule width="100%" strokeColor="#A7A7A7"/>
+		<!--<s:BorderContainer width="100%" height="1" borderColor="#A7A7A7" />-->
+		<s:HGroup width="100%" height="50" verticalAlign="middle" horizontalAlign="center" paddingLeft="15" paddingRight="15" paddingTop="5" paddingBottom="5">
+			<s:Button width="100%" height="100%" label="确定" id="btnConfirm" click="onClickClose(event)" />
+		</s:HGroup>
+	</s:BorderContainer>
+</s:Group>

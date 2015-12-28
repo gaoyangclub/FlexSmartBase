@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			 xmlns:s="library://ns.adobe.com/flex/spark" 
+			 xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="init(event)"
+			 width="100%" height="100%"
+			 >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import spark.filters.DropShadowFilter;
+			
+			private function init(event:FlexEvent):void
+			{
+				var t:ColorTransform = hoverSkin.transform.colorTransform;
+				t.redOffset = 50;
+				t.blueOffset = 50;
+				t.greenOffset = 50;
+				hoverSkin.transform.colorTransform = t;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<!-- host component -->
+	<fx:Metadata>
+		<![CDATA[ 
+		/** 
+		* @copy spark.skins.spark.ApplicationSkin#hostComponent
+		*/
+			[HostComponent("com.best.web.gyorg.library.components.ImageButton")]		
+		]]>
+	</fx:Metadata>
+	<s:states>  
+		<s:State name="up" />  
+		<s:State name="over" />  
+		<s:State name="down" />  
+		<s:State name="disabled" />  
+	</s:states>  
+	<s:layout>
+		<s:HorizontalLayout verticalAlign="middle" horizontalAlign="center"/>
+	</s:layout>
+	<s:Group width="100%" height="100%"> 
+		<s:Rect width="100%" height="100%">
+			<s:fill>
+				<s:SolidColor color="0" alpha="0" />
+			</s:fill>
+		</s:Rect>
+		<s:BitmapImage filters="{new spark.filters.DropShadowFilter(1)}" source.up="{hostComponent.source}" horizontalCenter="0" verticalCenter="0" />
+		<s:BitmapImage id="hoverSkin" filters="{new spark.filters.DropShadowFilter(1)}" source.over="{hostComponent.source}"  horizontalCenter="0" verticalCenter="0" />
+		<s:BitmapImage x="2" y="2"                                                      source.down="{hostComponent.source}"  horizontalCenter="0" verticalCenter="0"  />
+		<s:BitmapImage filters="{new spark.filters.DropShadowFilter(1)}" alpha=".5" source.disabled="{hostComponent.source}"  horizontalCenter="0" verticalCenter="0" />  
+	</s:Group>  
+	
+</s:SparkSkin>

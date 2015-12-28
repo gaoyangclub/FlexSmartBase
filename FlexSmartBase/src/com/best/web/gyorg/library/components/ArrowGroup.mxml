@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="14" height="6"
+		 minWidth="2" minHeight="1"
+		 >
+	<!-- 单纯显示一个箭头 可以设置箭头样式 填充色 是否封闭 朝向等 -->
+	<fx:Script>
+		<![CDATA[
+			private var _direction:String = "down";
+			[Inspectable(category="General", enumeration="left,right,up,down", defaultValue="down")]
+			public function get direction():String
+			{
+				return _direction;
+			}
+			/**
+			 * 箭头朝向
+			 * */
+			public function set direction(value:String):void
+			{
+				_direction = value;
+				invalidateDisplayList();
+			}
+			private var _borderAlpha:Number = 1;
+			/**
+			 * 线条透明度
+			 * */
+			public function set borderAlpha(value:Number):void
+			{
+				_borderAlpha = value;
+				invalidateDisplayList();
+			}
+			private var _borderColor:uint = 0xFFFFFF;
+			/**
+			 * 线条色
+			 * */
+			public function set borderColor(value:uint):void
+			{
+				_borderColor = value;
+				invalidateDisplayList();
+			}
+			private var _borderWeight:Number = 1;
+			/**
+			 * 线条粗细
+			 * */
+			public function set borderWeight(value:Number):void
+			{
+				_borderWeight = value;
+				invalidateDisplayList();
+			}
+			private var _backgroundColor:uint;
+			/**
+			 * 背景色
+			 * */
+			public function set backgroundColor(value:uint):void
+			{
+				_backgroundColor = value;
+				invalidateDisplayList();
+			}
+			private var _backgroundAlpha:Number = 1;
+			/**
+			 * 背景透明度
+			 * */
+			public function set backgroundAlpha(value:Number):void
+			{
+				_backgroundAlpha = value;
+				invalidateDisplayList();
+			}
+			private var _isClosed:Boolean;
+			/**
+			 * 是否封闭三角形箭头
+			 * */
+			public function set isClosed(value:Boolean):void
+			{
+				_isClosed = value;
+				invalidateDisplayList();
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				updateArrowGraphic();
+			}
+			
+			private function updateArrowGraphic():void
+			{
+				if(!_backgroundAlpha && !_borderAlpha && !_borderWeight)return;
+				
+				var w:Number = unscaledWidth;
+				var h:Number = unscaledHeight;
+				
+				var g:Graphics = this.graphics;
+				g.clear();
+				
+				var pList:Vector.<Point> = new Vector.<Point>();
+				if(_direction == "left"){
+					pList.push(new Point(w,0),new Point(0,h / 2),new Point(w,h));
+				}else if(_direction == "right"){
+					pList.push(new Point(0,0),new Point(w,h / 2),new Point(0,h));
+				}else if(_direction == "up"){
+					pList.push(new Point(0,h),new Point(w / 2,0),new Point(w,h));
+				}else if(_direction == "down"){
+					pList.push(new Point(0,0),new Point(w / 2,h),new Point(w,0));
+				}
+				if(_backgroundAlpha){//绘制背景区域
+					g.beginFill(_backgroundColor,_backgroundAlpha);
+					var prePoint:Point = pList[0];
+					g.moveTo(prePoint.x,prePoint.y);
+					for (var i:int = 1; i < pList.length; i++) 
+					{
+						var nowPoint:Point = pList[i];
+						g.lineTo(nowPoint.x,nowPoint.y);
+					}
+					g.lineTo(prePoint.x,prePoint.y);
+					g.endFill();
+				}
+				if(_borderAlpha && _borderWeight){//透明度和粗细合理
+					g.lineStyle(_borderWeight,_borderColor,_borderAlpha);
+					for (i = 0; i < pList.length - 1; i++) 
+					{
+						prePoint = pList[i];
+						nowPoint = pList[i + 1];
+						g.moveTo(prePoint.x,prePoint.y);
+						g.lineTo(nowPoint.x,nowPoint.y);
+					}
+					if(_isClosed){//线条要封闭
+						prePoint = pList[pList.length - 1];
+						nowPoint = pList[0];
+						g.moveTo(prePoint.x,prePoint.y);
+						g.lineTo(nowPoint.x,nowPoint.y);
+					}
+					g.endFill();//停止绘制
+				}
+				pList.length = 0;
+				pList = null;//释放数据
+			}
+		]]>
+	</fx:Script>
+</s:Group>

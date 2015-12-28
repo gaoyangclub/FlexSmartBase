@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns:components="com.best.web.gyorg.library.components.*"
+		  paddingLeft="50" paddingTop="20"
+		  width="100%" height="100%" 
+		  >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<!--<components:RangeNumberInput minimum="1" />-->
+	<s:Form>
+		<s:FormItem label="">
+			<s:Label fontWeight="bold" fontSize="18" text="扁平化单色按钮" />
+		</s:FormItem>
+		<s:FormItem label="按钮圆角半径">
+			<mx:Slider minimum="0" maximum="10" value="5" snapInterval=".1" id="cornerSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="按钮背景色">
+			<mx:ColorPicker id="backColor" selectedColor="0x0099CC"/>
+		</s:FormItem>
+		<s:FormItem label="文本色">
+			<mx:ColorPicker id="textColor" selectedColor="0xFFFFFF"/>
+		</s:FormItem>
+		<s:FormItem label="">
+			<components:SingleColorButton label="测试按钮" cornerRadius="{cornerSlider.value}" color="{textColor.selectedColor}" width="100" height="30"
+										  backgroundColor="{backColor.selectedColor}"  />
+		</s:FormItem>
+		<!--<s:FormItem label="显示边框">
+			<s:CheckBox id="borderCheck" />
+		</s:FormItem>-->
+	</s:Form>
+	<!-- borderVisbile="{borderCheck.selected}" -->
+</s:VGroup>

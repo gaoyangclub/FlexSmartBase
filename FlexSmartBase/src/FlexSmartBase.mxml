@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   xmlns:components="com.best.web.gyorg.library.components.*"
+			   xmlns:dialog="com.best.web.gyorg.library.dialog.*" 
+			   xmlns:view="com.view.*"
+			   width="955" height="600" 
+			   creationComplete="application1_creationCompleteHandler(event)"
+			   >
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace components "com.best.web.gyorg.library.components.*";
+		@namespace dialog "com.best.web.gyorg.library.dialog.*";
+		@namespace view "com.view.*";
+		global
+		{
+			fontSize: 15px;
+			fontFamily: "微软雅黑";
+			color: #464646;
+		}
+	</fx:Style>
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			protected function application1_creationCompleteHandler(event:FlexEvent):void
+			{
+				var os:String = Capabilities.os;
+				if(os == "Windows XP"){//XP的改成宋体即可
+					FlexGlobals.topLevelApplication.setStyle("fontFamily","宋体");
+				}
+			}
+			
+//			[Bindable]   
+//			 public var menuData:Array = [  
+//				{label: "MenuItem A", children: [  
+//					{label: "SubMenuItem A-1", enabled: false},  
+//					{label: "SubMenuItem A-2", type: "normal"}   
+//				]},  
+//			{label: "MenuItem B", type: "check", toggled: true},  
+//			{label: "MenuItem C", type: "check", toggled: false},  
+//			{type: "separator"},  
+//			{label: "MenuItem D", children: [  
+//				{label: "SubMenuItem D-1", type: "radio",   
+//					groupName: "g1"},  
+//				{label: "SubMenuItem D-2", type: "radio",   
+//					groupName: "g1", toggled: true},   
+//				{label: "SubMenuItem D-3", type: "radio",   
+//					groupName: "g1"}   
+//				]}   
+//			];
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<!--<mx:Menu dataProvider="{menuData}" itemRenderer="com.testrenderer.TestMenuRenderer">
+	</mx:Menu>-->
+	
+	<view:FlexSmartMain width="100%" height="100%" />
+	
+</s:Application>

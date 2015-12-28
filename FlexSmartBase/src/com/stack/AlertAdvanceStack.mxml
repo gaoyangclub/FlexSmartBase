@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:components="com.best.web.gyorg.library.components.*"
+		  paddingLeft="50" paddingTop="5"
+		  width="100%" height="100%" 
+		  >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.components.AlertAdvance;
+			private function button1_clickHandler(e:MouseEvent):void
+			{
+				if(highlightWordInput.text){
+					AlertAdvance.highLightWords = highlightWordInput.text.split(",");
+				}else{
+					AlertAdvance.highLightWords = null;
+				}
+				AlertAdvance.highLightColor = highlightColorPicker.selectedColor;
+				
+				var alert:AlertAdvance = AlertAdvance.showNormal(contentText.text,"提示",null,okDelaySlider.value);
+				alert.setStyle("chromeFillColor",chromeFillPicker.selectedColor);
+				alert.setStyle("chromeLabelColor",chromeLabelPicker.selectedColor);
+				alert.setStyle("borderColor",borderColorPicker.selectedColor);
+				alert.setStyle("focusColor",focusColorPicker.selectedColor);
+				alert.setStyle("titleFontSize",fontSlider.value);
+				alert.setStyle("cornerRadius",cornerSlider.value);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:FormItem label="">
+		<s:Label fontWeight="bold" fontSize="18" text="自定义警告框，可显示富文本点击链接等，延迟确认，高亮显示关键字" />
+	</s:FormItem>
+	<s:Form>
+		<s:layout>
+			<s:TileLayout requestedColumnCount="2" verticalGap="0" verticalAlign="middle" />
+		</s:layout>
+		<s:FormItem label="chromeFillColor:">
+			<mx:ColorPicker id="chromeFillPicker" selectedColor="#f88800" />
+		</s:FormItem>
+		<s:FormItem label="chromeLabelColor:">
+			<mx:ColorPicker id="chromeLabelPicker" selectedColor="#ffe3b2"/>
+		</s:FormItem>
+		<s:FormItem label="borderColor:">
+			<mx:ColorPicker id="borderColorPicker" selectedColor="#a0a7af"/>
+		</s:FormItem>
+		<s:FormItem label="focusColor:">
+			<mx:ColorPicker id="focusColorPicker" selectedColor="#f75100"/>
+		</s:FormItem>
+		<s:FormItem label="cornerRadius:">
+			<mx:Slider minimum="0" maximum="10" value="5" snapInterval=".1" id="cornerSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="titleFontSize:">
+			<mx:Slider minimum="10" maximum="30" value="22" snapInterval="1" id="fontSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="高亮词组:">
+			<components:TextInputAdvance prompt="用逗号分隔关键字" text="快递单" id="highlightWordInput" />
+		</s:FormItem>
+		<s:FormItem label="高亮颜色:">
+			<mx:ColorPicker id="highlightColorPicker" selectedColor="#FF3300"/>
+		</s:FormItem>
+		<s:FormItem label="确认键延迟">
+			<mx:Slider minimum="0" maximum="5" value="2" snapInterval="1" id="okDelaySlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+	</s:Form>
+	<s:FormItem label="测试内容">
+		<s:layout>
+			<s:HorizontalLayout />
+		</s:layout>
+		<s:TextArea id="contentText" text="&lt;font color='#0099CC' size='14'&gt;如何使用快递单并创建快递单模板？请&lt;br&gt;点击&lt;a href='www.baidu.com' target='_blank'&gt;这里&lt;/a&gt;&lt;/font&gt;" width="200" minHeight="50" />
+		<s:Button label="检测弹窗" click="button1_clickHandler(event)"/>
+	</s:FormItem>
+</s:VGroup>

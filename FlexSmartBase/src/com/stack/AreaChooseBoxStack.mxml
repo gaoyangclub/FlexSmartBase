@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns:components="com.best.web.gyorg.library.components.*"
+		  width="100%" height="100%" 
+		  >
+	<fx:Script>
+		<![CDATA[
+			import com.db.LocalDataBase;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			
+			private function combobox1_valueCommitHandler(e:FlexEvent):void
+			{
+				autoSingleCheck.selected = false;
+				areaChoose.levelsName = dataSourceCB.selectedItem.levelsName;
+				areaChoose.prompt = dataSourceCB.selectedItem.prompt;
+				areaChoose.dateProvider = dataSourceCB.selectedItem.data;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Form>
+		<s:FormItem label="">
+			<s:Label fontWeight="bold" fontSize="18" text="数字选择控件,可输入或快捷栏选择" />
+		</s:FormItem>
+		<s:FormItem label="数据源:">
+			<s:ComboBox id="dataSourceCB" creationComplete="{dataSourceCB.textInput.editable = false}" requireSelection="true" valueCommit="combobox1_valueCommitHandler(event)" >
+				<s:dataProvider>
+					<s:ArrayCollection>
+						<fx:Array>
+							<fx:Object label="地区" data="{LocalDataBase.areaData}" levelsName="['省','市','区']" prompt="请选择地区"/>
+							<fx:Object label="班级" data="{LocalDataBase.classData}" levelsName="['系','专业','班']" prompt="请选择班级"/>
+							<fx:Object label="组织架构" data="{LocalDataBase.organizeData}" levelsName="['部门','组']" prompt="请选择组织"/>
+						</fx:Array>
+					</s:ArrayCollection>
+				</s:dataProvider>
+			</s:ComboBox>
+		</s:FormItem>
+		<s:FormItem label="">
+			<s:CheckBox label="仅有一条数据自动跳到下级栏目" id="autoSingleCheck" />
+		</s:FormItem>
+		<s:FormItem label="">
+			<components:AreaChooseBox id="areaChoose" keywordOnly="true" labelField="label" autoSingleTurnNext="{autoSingleCheck.selected}" areaWidth="300"
+									  groupsName="{[['A','B','C','D','E','F','G'],['H','I','J','K'],['L','M','N','O','P','Q','R','S'],['T','U','V','W','X','Y','Z']]}"
+									  levelsName="{['省','市','区'/*,'街道'*/]}" prompt="请选择城市" 
+									  />
+		</s:FormItem>
+	</s:Form>
+</s:VGroup>

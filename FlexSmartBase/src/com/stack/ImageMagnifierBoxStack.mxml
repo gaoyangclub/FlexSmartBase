@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns:components="com.best.web.gyorg.library.components.*"
+		  width="100%" height="100%"
+		  creationComplete="vgroup1_creationCompleteHandler(event)"
+		  >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var imageUrlList:Array = [
+				"http://hx.hn.csg.cn/WebFiles/PhotoClub/201207/20120706285981.jpg",
+				"http://img3.fengniao.com/album/upload/136/27047/5409308.jpg",
+				//"http://www.wltzq.bynrga.gov.cn/files/103216/1107/x_38b4013820.jpg",
+				"http://www.zjswb.gov.cn/uploadFile/20080626085333244/01.jpg",
+				"http://hx.hn.csg.cn/WebFiles/PhotoClub/201207/20120706148410.jpg"
+			];
+			
+			private function button1_clickHandler(e:MouseEvent):void
+			{
+				if(++ currentIndex >= imageUrlList.length){
+					currentIndex = 0;
+				}
+				imageMagnifier.url = imageUrlList[currentIndex];
+			}
+			
+			private var currentIndex:int = 0;
+			private function vgroup1_creationCompleteHandler(e:FlexEvent):void
+			{
+				imageMagnifier.url = imageUrlList[currentIndex];
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Form>
+		<s:layout>
+			<s:TileLayout requestedColumnCount="2" verticalGap="0" verticalAlign="middle" />
+		</s:layout>
+		<s:FormItem label="rectWidth:">
+			<mx:Slider minimum="100" maximum="500" value="350" snapInterval="2" id="rectWidthSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="rectHeight:">
+			<mx:Slider minimum="100" maximum="500" value="350" snapInterval="2" id="rectHeightSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="screenWidth:">
+			<mx:Slider minimum="30" maximum="150" value="80" snapInterval="2" id="screenWidthSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="screenHeight:">
+			<mx:Slider minimum="20" maximum="130" value="60" snapInterval="2" id="screenHeightSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+	</s:Form>
+	
+	<s:VGroup horizontalAlign="center">
+		<components:ImageMagnifierBox id="imageMagnifier" rectWidth="{rectWidthSlider.value}" rectHeight="{rectHeightSlider.value}" 
+									  screenWidth="{screenWidthSlider.value}" screenHeight="{screenHeightSlider.value}"/>
+		<s:Button label="切换图片" click="button1_clickHandler(event)" />
+	</s:VGroup>
+	
+</s:VGroup>

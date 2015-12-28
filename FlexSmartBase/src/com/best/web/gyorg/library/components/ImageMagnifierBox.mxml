@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 >
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			
+			[Bindable]
+			[Embed("/assets/style/magnifier/rotate_anticlockwise.png")]
+			private static var IconAnticlockwise:Class;//载入左转图标
+			[Bindable]
+			[Embed("/assets/style/magnifier/rotate_anticlockwise_skip.png")]
+			private static var IconAnticlockwiseOn:Class;//载入左转图标
+			[Bindable]
+			[Embed("/assets/style/magnifier/rotate_anticlockwise_press.png")]
+			private static var IconAnticlockwiseDown:Class;//载入左转图标
+			
+			[Bindable]
+			[Embed("/assets/style/magnifier/rotate_clockwise.png")]
+			private static var IconClockwise:Class;//载入右转图标
+			[Bindable]
+			[Embed("/assets/style/magnifier/rotate_clockwise_skip.png")]
+			private static var IconClockwiseOn:Class;//载入右转图标
+			[Bindable]
+			[Embed("/assets/style/magnifier/rotate_clockwise_press.png")]
+			private static var IconClockwiseDown:Class;//载入右转图标
+			
+			[Bindable]
+			[Embed("/assets/style/magnifier/download.png")]
+			private static var IconDownload:Class;//载入下载图标
+			[Bindable]
+			[Embed("/assets/style/magnifier/download_skip.png")]
+			private static var IconDownloadOn:Class;//载入下载图标
+			[Bindable]
+			[Embed("/assets/style/magnifier/download_press.png")]
+			private static var IconDownloadDown:Class;//载入下载图标
+			
+			private var _url:String;
+			private var _urlChange:Boolean;
+			public function get url():String
+			{
+				return _url;
+			}
+			[Bindable]
+			public function set url(value:String):void
+			{
+				_url = value;
+				_urlChange = true;
+				reset();
+				commitProperties();
+			}
+			
+			/** 恢复原状态 旋转恢复 map图片隐藏  **/
+			public function reset():void{
+				hideMapGroup();
+				if(imageGroup != null && imageMap != null && imageMap.imageDisplay != null){
+					imageMap.imageDisplay.rotation = imageGroup.rotation = 0;
+				}
+			}
+
+			private var _rectWidth:Number;
+			
+			/** 下载图片的文件名 **/
+			public var fileName:String = "image.png";
+
+			[Bindable]
+			public function get rectWidth():Number
+			{
+				return _rectWidth;
+			}
+			private var _rectWidthChange:Boolean;
+			public function set rectWidth(value:Number):void
+			{
+				_rectWidth = value;
+				_rectWidthChange = true;
+				this.url = _url;//重刷
+//				commitProperties();
+			}
+			
+			private var _rectHeight:Number;
+			[Bindable]
+			public function get rectHeight():Number
+			{
+				return _rectHeight;
+			}
+			private var _rectHeightChange:Boolean;
+			public function set rectHeight(value:Number):void
+			{
+				_rectHeight = value;
+				_rectHeightChange = true;
+				this.url = _url;//重刷
+//				commitProperties();
+			}
+			
+			private var _screenWidthChange:Boolean;
+			private var _screenWidth:Number = 100;
+			[Bindable]
+			public function get screenWidth():Number
+			{
+				return _screenWidth;
+			}
+			public function set screenWidth(value:Number):void
+			{
+				_screenWidth = value;
+				_screenWidthChange = true;
+				commitProperties();
+			}
+			
+			private var _screenHeightChange:Boolean;
+			private var _screenHeight:Number = 100;
+			[Bindable]
+			public function get screenHeight():Number
+			{
+				return _screenHeight;
+			}
+			public function set screenHeight(value:Number):void
+			{
+				_screenHeight = value;
+				_screenHeightChange = true;
+				commitProperties();
+			}
+			
+			[Bindable]
+			private var mapData:BitmapData;
+			/**
+			 *  @private
+			 */
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				checkMapData();
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			
+			private function anticlockwiseClick(e:MouseEvent):void
+			{
+				imageGroup.rotation -= 90;
+				if(imageMap != null)imageMap.imageDisplay.rotation = imageGroup.rotation;
+			}
+			
+			private function clockwiseClick(e:MouseEvent):void
+			{
+				imageGroup.rotation += 90;
+				if(imageMap != null)imageMap.imageDisplay.rotation = imageGroup.rotation;
+			}
+			
+			private function iamgeHover(e:Event):void
+			{
+				addEventListener(Event.ENTER_FRAME,onMouseMove);
+//				addEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+			}
+			
+			private function imageOut(e:Event):void
+			{
+				removeEventListener(Event.ENTER_FRAME,onMouseMove);
+//				removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+//				trace("鼠标滑出");
+				
+				var bd:BitmapData = imageArea.bitmapData;
+				if(bd == null || mapData == null || isNaN(bitmapScale))return;//还未加载完成
+				var realWidth:Number = bd.width;
+				var realHeight:Number = bd.height;
+				
+				if(isNaN(_rectWidth) || isNaN(_rectHeight)){
+					var areaWidth:Number = realWidth;//真实宽高
+					var areaHeight:Number = realHeight;
+				}else{
+					areaWidth = _rectWidth;
+					areaHeight = _rectHeight;
+				}
+				var nowWidth:Number = bitmapScale * realWidth;
+				var nowHeight:Number = bitmapScale * realHeight;
+				
+				var topPadding:Number = (areaHeight - nowHeight) / 2;
+				var leftPadding:Number = (areaWidth - nowWidth) / 2;
+				var imageMouseX:Number = imageArea.mouseX;
+				var imageMouseY:Number = imageArea.mouseY;
+				
+				if(imageMouseX >= leftPadding && imageMouseY >= topPadding && imageMouseX <= areaWidth - leftPadding && imageMouseY <= areaHeight - topPadding){
+					
+				}else{
+					hideMapGroup();
+				}
+			}
+
+			private function onMouseMove(e:Event):void
+			{
+				var bd:BitmapData = imageArea.bitmapData;
+				if(bd == null || mapData == null || isNaN(bitmapScale))return;//还未加载完成
+				var realWidth:Number = bd.width;
+				var realHeight:Number = bd.height;
+				
+				if(isNaN(_rectWidth) || isNaN(_rectHeight)){
+					var areaWidth:Number = realWidth;//真实宽高
+					var areaHeight:Number = realHeight;
+				}else{
+					areaWidth = _rectWidth;
+					areaHeight = _rectHeight;
+				}
+//				var iamgeWidth:Number = imageArea.width;
+//				var imageHeight:Number = imageArea.height;
+//				var scaleX:Number = areaWidth / realWidth;
+//				var scaleY:Number = rectHeight / realHeight;
+//				var scale:Number = Math.min(scaleX,scaleY);
+				var nowWidth:Number = bitmapScale * realWidth;
+				var nowHeight:Number = bitmapScale * realHeight;
+				
+				var topPadding:Number = (areaHeight - nowHeight) / 2;
+				var leftPadding:Number = (areaWidth - nowWidth) / 2;
+				var imageMouseX:Number = imageArea.mouseX;
+				var imageMouseY:Number = imageArea.mouseY;
+				
+				if(imageMouseX >= leftPadding && imageMouseY >= topPadding && imageMouseX <= areaWidth - leftPadding && imageMouseY <= areaHeight - topPadding){
+					//在合理区域内 开始截图
+					if(imageMouseX - screenWidth / 2 < leftPadding){
+						var rectAreaX:Number = leftPadding;
+					}else if(imageMouseX + screenWidth / 2 > areaWidth - leftPadding){
+						rectAreaX = areaWidth - leftPadding - screenWidth;
+					}else{
+						rectAreaX = imageMouseX - screenWidth / 2;
+					}
+					if(imageMouseY - screenHeight / 2 < topPadding){
+						var rectAreaY:Number = topPadding;
+					}else if(imageMouseY + screenHeight / 2 > areaHeight - topPadding){
+						rectAreaY = areaHeight - topPadding - screenHeight;
+					}else{
+						rectAreaY = imageMouseY - screenHeight / 2;
+					}
+					rectArea.x = rectAreaX;
+					rectArea.y = rectAreaY;
+					
+					var startX:Number = (rectAreaX - leftPadding) / bitmapScale;
+					var startY:Number = (rectAreaY - topPadding) / bitmapScale;//起点位置
+					var printWidth:Number = screenWidth / bitmapScale;
+					var printHeight:Number = screenHeight / bitmapScale;
+//					trace("startX:" + startX,"startY:" + startY,"printWidth:" + printWidth,"printHeight:" + printHeight);
+					mapData.fillRect(mapData.rect,0x00000000);
+					mapData.copyPixels(bd,new Rectangle(startX,startY,printWidth,printHeight),new Point());
+					
+					showMapGroup();
+				}else{
+					hideMapGroup();
+				}
+//				trace("鼠标x:" + imageMouseX,"鼠标y:" + imageMouseY);
+//				trace("图片宽度:" + realWidth * bitmapScale,"图片高度:" + realHeight * bitmapScale);
+				
+//				trace("scaleX:" + imageArea.imageDisplay.scaleX,"scaleY:" + imageArea.imageDisplay.scaleY,
+//					"width:" + imageArea.imageDisplay.width,"height:" + imageArea.imageDisplay.height);
+			}
+			
+			
+			private var bitmapScale:Number = 1;
+			private function checkMapData():void
+			{
+				if(_rectWidthChange || _rectHeightChange || _screenWidthChange || _screenHeightChange || _urlChange){
+					if(_rectWidth < _screenWidth || _rectHeight < _screenHeight){
+						throw new Error("截取范围(screenWidth,screenHeight)不能比显示区域(rectWidth,rectHeight)大！！！");
+					}
+					var bd:BitmapData = imageArea.bitmapData;
+					if(bd == null)return;//还未加载完成
+					var realWidth:Number = bd.width;
+					var realHeight:Number = bd.height;
+					
+					if(isNaN(_rectWidth) || isNaN(_rectHeight)){
+						bitmapScale = 1;
+					}else{
+						var scaleX:Number = _rectWidth / realWidth;
+						var scaleY:Number = _rectHeight / realHeight;
+						bitmapScale = Math.min(scaleX,scaleY);
+					}
+					
+					var printWidth:int = _screenWidth / bitmapScale;
+					var printHeight:int = _screenHeight / bitmapScale;
+					if(mapData != null){
+						if(printWidth != mapData.width || printHeight != mapData.height){//宽高有不一样
+							mapData.dispose();//清除
+							imageMap.source = null;
+							var isClear:Boolean = true;
+						}/* else{
+							trace("放大镜显示宽高没变化");
+						} */
+					}else{
+						isClear = true;
+					}
+					if(isClear && !isNaN(printWidth) && !isNaN(printHeight)) {
+						mapData = new BitmapData(printWidth,printHeight,true,0x00000000);
+					}
+				}
+				_rectWidthChange = _rectHeightChange = _screenWidthChange = _screenHeightChange = _urlChange = false;
+			}
+			
+			private function imageAreaLoadComplete(e:Event):void
+			{
+				checkMapData();
+			}
+			
+			private function showMapGroup():void
+			{
+				var bd:BitmapData = imageArea.bitmapData;
+				if(bd == null || mapData == null || isNaN(bitmapScale))return;//还未加载完成
+				
+				rectArea.visible = true;
+				var globalPoint:Point = imageAreaGroup.localToGlobal(new Point(0,0));
+//				PopUpManager.addPopUp(imageMapGroup,parentApplication as DisplayObject,false);
+//				parentApplication.addElement(imageMapGroup);
+				
+				FlexGlobals.topLevelApplication.systemManager.addChild(imageMapGroup);
+				
+				imageMapGroup.x = globalPoint.x + rectWidth + 1;
+				imageMapGroup.y = globalPoint.y;
+				
+//				trace("rectArea显示,截取框范围x:" + rectArea.x,"y:" + rectArea.y,"screenWidth:" + screenWidth,"screenHeight:" + screenHeight);
+				
+				if(imageMap == null || imageMap.imageDisplay == null)return;
+				var realWidth:Number = bd.width;
+				var realHeight:Number = bd.height;
+				
+				var nowWidth:Number = bitmapScale * realWidth;
+				var nowHeight:Number = bitmapScale * realHeight;
+				var printScaleX:Number = nowWidth / _screenWidth;
+				var printScaleY:Number = nowHeight / _screenHeight;
+				//				var printScale:Number = Math.min(printScaleX,printScaleY);
+				imageMap.imageDisplay.scaleX = printScaleX;
+				imageMap.imageDisplay.scaleY = printScaleY;
+			}
+			
+			private function hideMapGroup():void
+			{
+				if(rectArea != null && imageMapGroup != null){
+					rectArea.visible = false;
+//					trace("rectArea隐藏");
+//					if(imageMapGroup.isPopUp){
+//						PopUpManager.removePopUp(imageMapGroup);
+//					}
+					if(imageMapGroup.parent != null){
+						imageMapGroup.parent.removeChild(imageMapGroup);
+					}
+				}
+			}
+			
+			private function downloadClick(e:MouseEvent):void
+			{
+				var file:FileReference = new FileReference();
+				file.download(new URLRequest(url),fileName);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:BorderContainer id="imageMapGroup" width="{rectWidth}" height="{rectHeight}" borderColor="0xCCCCCC" borderWeight=".5">
+			<s:Image id="imageMap" source="{mapData}" maxWidth="{rectWidth}" maxHeight="{rectHeight}" />
+		</s:BorderContainer>
+	</fx:Declarations>
+	<s:HGroup verticalAlign="top">
+		<s:VGroup paddingTop="10" paddingLeft="10">
+			<mx:Button upSkin="{IconAnticlockwise}" downSkin="{IconAnticlockwiseDown}" overSkin="{IconAnticlockwiseOn}" 
+					   toolTip="图片向逆时针旋转90°" click="anticlockwiseClick(event)" />
+			<mx:Button upSkin="{IconClockwise}" downSkin="{IconClockwiseDown}" overSkin="{IconClockwiseOn}"
+					   toolTip="图片向顺时针旋转90°" click="clockwiseClick(event)" />
+			<mx:Button upSkin="{IconDownload}" downSkin="{IconDownloadDown}" overSkin="{IconDownloadOn}" 
+					   toolTip="下载源图" click="downloadClick(event)" />
+		</s:VGroup> 
+		<s:BorderContainer id="imageAreaGroup" width="{rectWidth}" height="{rectHeight}" borderColor="0xCCCCCC" borderWeight=".5" 
+						   rollOver="iamgeHover(event)" rollOut="imageOut(event)" focusOut="imageOut(event)" mouseChildren="false">
+			<s:Group horizontalCenter="0" verticalCenter="0" id="imageGroup"
+					 >
+				<s:Image source="{url}" id="imageArea" maxWidth="{rectWidth}" maxHeight="{rectHeight}" 
+						 complete="imageAreaLoadComplete(event)"/>
+				<s:Rect id="rectArea" width="{screenWidth}" height="{screenHeight}" visible="false" >
+					<s:fill>
+						<s:SolidColor color="blue" alpha=".5" />
+					</s:fill>
+				</s:Rect>
+			</s:Group>
+		</s:BorderContainer>
+	</s:HGroup>
+	
+</s:Group>

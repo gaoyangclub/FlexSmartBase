@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 skinClass="com.best.web.gyorg.library.skin.AlertAdvanceSkin"
+		 >
+	<fx:Metadata>
+		[Style(name="chromeFillColor", type="uint",defaultValue="#EAEAEA")]
+		[Style(name="chromeLabelColor", type="uint",defaultValue="#FFFFFF")]
+		[Style(name="titleFontSize", type="Number",defaultValue="12")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.manager.TimerManager;
+			
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.IActiveWindowManager;
+			import mx.managers.IFocusManagerContainer;
+			import mx.managers.ISystemManager;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.Button;
+			import spark.components.Image;
+			import spark.components.RichEditableText;
+			
+			import flashx.textLayout.conversion.TextConverter;
+			[SkinPart(required="false")]
+			public var btnOK:SingleColorButton;//样式中对应的实例
+			[SkinPart(required="false")]
+			public var btnYES:SingleColorButton;//样式中对应的实例
+			[SkinPart(required="false")]
+			public var btnNO:SingleColorButton;//样式中对应的实例
+			[SkinPart(required="false")]
+			public var btnCancel:SingleColorButton;//样式中对应的实例
+			[SkinPart(required="false")]
+			public var titleIcon:Image;//样式中对应的实例
+			[SkinPart(required="false")]
+			public var contentText:RichEditableText;
+			
+			public static const YES:uint = 0x0001;
+			public static const NO:uint = 0x0002;
+			public static const OK:uint = 0x0004;
+			public static const CANCEL:uint= 0x0008;
+			public static const NONMODAL:uint = 0x8000;
+			
+			public static var buttonHeight:Number = 22;
+			public static var buttonWidth:Number = 65;
+			
+			public static var cancelLabel:String = "退出";
+			public static var noLabel:String = "取消";
+			public static var okLabel:String = "确定";
+			public static var yesLabel:String = "好的";
+			
+			/** 标题栏警示图标 */
+			public static var titleIcon:Object;
+			
+			/** 可以点击ok的剩余时间 单位(秒) */
+			public static var okDelay:uint;
+			/** 可以点击no的剩余时间 单位(秒) */
+			public static var noDelay:uint;
+			/** 可以点击yes的剩余时间 单位(秒) */
+			public static var yesDelay:uint;
+			/** 可以点击cancal的剩余时间 单位(秒) */
+			public static var cancelDelay:uint;
+			/** 具有高亮效果的词组 **/
+			public static var highLightWords:Array;
+			/** 高亮的词组颜色值*/
+			public static var highLightColor:uint = 0xEAEAEA;
+			
+			private static function checkHightLight(text:String):String
+			{
+				for each (var char:String in highLightWords) 
+				{
+					var myPattern:RegExp = new RegExp(char,"g");
+					text = text.replace(myPattern,"<font color='#" + highLightColor.toString(16) + "' >" + char + "</font>");
+				}
+				return text;
+			}
+			/**
+			 * 特殊字符替换检查
+			 * */
+			private static function checkSpecialMark(text:String):String
+			{
+				var myPattern:RegExp = new RegExp("\n","g");
+				text = text.replace(myPattern,"<br/>");	
+				return text;
+			}
+			
+			/**
+			 * 最普通的警告框调用模式，有OK | NO选项，默认选中OK
+			 * @okOrYesDelay 选中确定按钮的延迟
+			 * */
+			public static function showNormal(text:String = "", title:String = "",closeHandler:Function = null,
+											okOrYesDelay:Number = NaN,
+											defaultButtonFlag:uint = 0x4 /* Alert.OK */,
+											flags:uint = 0x6):AlertAdvance{
+				return show(text,title,flags,null,closeHandler,null,defaultButtonFlag,okOrYesDelay);
+			}
+			/**
+			 *  A bitmask that contains <code>Alert.OK</code>, <code>Alert.CANCEL</code>, 
+			 *  <code>Alert.YES</code>, and/or <code>Alert.NO</code> indicating
+			 *  the buttons available in the Alert control.
+			 *
+			 *  @default Alert.OK
+			 *  
+			 *  @langversion 3.0
+			 *  @playerversion Flash 9
+			 *  @playerversion AIR 1.1
+			 *  @productversion Flex 3
+			 */
+			public var buttonFlags:uint = OK;
+			[Inspectable(category="General")]
+			public var defaultButtonFlag:uint = OK;
+			
+			public static function show(text:String = "", title:String = "",
+										flags:uint = 0x4 /* Alert.OK */, 
+										parent:Sprite = null, 
+										closeHandler:Function = null, 
+										iconClass:Class = null, 
+										defaultButtonFlag:uint = 0x4 /* Alert.OK */,
+										okOrYesDelay:Number = NaN):AlertAdvance
+			{
+				var modal:Boolean = (flags & AlertAdvance.NONMODAL) ? false : true;
+				
+				if (!parent)
+				{
+					var sm:ISystemManager = ISystemManager(FlexGlobals.topLevelApplication.systemManager);
+					// no types so no dependencies
+					var mp:Object = sm.getImplementation("mx.managers::IMarshalSystemManager");
+					if (mp && mp.useSWFBridge())
+						parent = Sprite(sm.getSandboxRoot());
+					else
+						parent = Sprite(FlexGlobals.topLevelApplication);
+				}
+				
+				var alert:AlertAdvance = new AlertAdvance();
+				alert.okOrYesDelay = okOrYesDelay;
+				
+				if (flags & AlertAdvance.OK||
+					flags & AlertAdvance.CANCEL ||
+					flags & AlertAdvance.YES ||
+					flags & AlertAdvance.NO)
+				{
+					alert.buttonFlags = flags;
+				}
+				
+				if (defaultButtonFlag == AlertAdvance.OK ||
+					defaultButtonFlag == AlertAdvance.CANCEL ||
+					defaultButtonFlag == AlertAdvance.YES ||
+					defaultButtonFlag == AlertAdvance.NO)
+				{
+					alert.defaultButtonFlag = defaultButtonFlag;
+				}
+				
+				text = checkSpecialMark(text);
+				text = checkHightLight(text);
+				
+				alert.text = text;
+				alert.title = title;
+				if(iconClass){
+					alert.iconClass = iconClass;
+				}else{
+					alert.iconClass = titleIcon;
+				}
+				
+				if (closeHandler != null)
+					alert.addEventListener(CloseEvent.CLOSE, closeHandler);
+				
+				alert.addEventListener(FlexEvent.CREATION_COMPLETE, static_creationCompleteHandler);
+				PopUpManager.addPopUp(alert, parent, modal);
+				
+				return alert;
+			}
+			
+			/**
+			 *  @private
+			 */
+			private static function static_creationCompleteHandler(event:FlexEvent):void
+			{
+				if (event.target is IFlexDisplayObject && event.eventPhase == EventPhase.AT_TARGET)
+				{
+					var alert:AlertAdvance = AlertAdvance(event.target);
+					alert.removeEventListener(FlexEvent.CREATION_COMPLETE, static_creationCompleteHandler);
+					
+					alert.setActualSize(alert.getExplicitOrMeasuredWidth(),
+						alert.getExplicitOrMeasuredHeight());
+					PopUpManager.centerPopUp(IFlexDisplayObject(alert));
+				}
+			}
+			
+			private var _text:String;
+			public function get text():String
+			{
+				return _text;
+			}
+
+			public function set text(value:String):void
+			{
+				_text = value;
+				if(contentText != null){
+					contentText.textFlow = TextConverter.importToFlow(value, 
+						TextConverter.TEXT_FIELD_HTML_FORMAT);
+				}
+				showText();
+			}
+
+			private var maxTextWidth:Number = 340;
+			private function showText():void
+			{
+				if(contentText != null){
+					contentText.textFlow = TextConverter.importToFlow(_text, 
+						TextConverter.TEXT_FIELD_HTML_FORMAT);
+					var fontSize:Number = contentText.getStyle("fontSize");
+					var testW:Number = fontSize * contentText.text.length;
+					if(testW > maxTextWidth){
+						testW = maxTextWidth;
+					}
+					contentText.width = testW;
+				}
+			}
+			
+			private var _iconClass:Object;
+			public function get iconClass():Object
+			{
+				return _iconClass;
+			}
+
+			public function set iconClass(value:Object):void
+			{
+				_iconClass = value;
+				showIcon();
+			}
+			
+			private function showIcon():void{
+				if(titleIcon != null){
+					titleIcon.source = _iconClass;
+				}
+			}
+			
+			private var buttons:Array = [];
+			/**
+			 *  @private
+			 */
+			private var defaultButtonChanged:Boolean = false;
+			
+			private function checkDelay(delay:uint,btn:Button,label:String):void{
+				if(delay){
+					btn.enabled = false;
+					var delayTimes:uint = delay;
+					btn.label = label + "(" + delayTimes + ")";
+					var interFunc:Function = function():void{
+						if(delayTimes - 1 == 0){//次数到了
+							btn.enabled = true;
+							TimerManager.clearIntervalOut(interFunc);
+							btn.label = label;
+						}else{
+							delayTimes--;
+							btn.label = label + "(" + delayTimes + ")";
+						}
+					}
+					TimerManager.setIntervalOut(1000,interFunc);
+				}else{
+					btn.label = label;
+				}
+			}
+			private var okOrYesDelay:Number;
+			/**
+			 *  @private
+			 */
+			override protected function measure():void
+			{
+				super.measure();
+				
+//				createTextField(-1);
+				if (buttonFlags & AlertAdvance.OK)
+				{
+					buttons.push(btnOK);
+					if(!isNaN(okOrYesDelay)){
+						var delay:Number = okOrYesDelay;//单独设置有效
+					}else{
+						delay = AlertAdvance.okDelay;//全局设置
+					}
+					checkDelay(delay,btnOK,AlertAdvance.okLabel);
+					if (defaultButtonFlag == AlertAdvance.OK)
+						defaultButton = btnOK;
+				}
+				
+				if (buttonFlags & AlertAdvance.YES)
+				{
+					checkDelay(AlertAdvance.yesDelay,btnYES,AlertAdvance.yesLabel);
+					buttons.push(btnYES);
+					if (defaultButtonFlag == AlertAdvance.YES)
+						defaultButton = btnYES;
+				}
+				
+				if (buttonFlags & AlertAdvance.NO)
+				{
+					checkDelay(AlertAdvance.noDelay,btnNO,AlertAdvance.noLabel);
+					buttons.push(btnNO);
+					if (defaultButtonFlag == AlertAdvance.NO)
+						defaultButton = btnNO;
+				}
+				
+				if (buttonFlags & AlertAdvance.CANCEL)
+				{
+					checkDelay(AlertAdvance.cancelDelay,btnCancel,AlertAdvance.cancelLabel);
+					buttons.push(btnCancel);
+					if (defaultButtonFlag == AlertAdvance.CANCEL)
+						defaultButton = btnCancel;
+				}
+				
+				if (!defaultButton && buttons.length)
+					defaultButton = buttons[0];
+				
+				// Set the default button to have focus.
+				if (defaultButton)
+				{
+					defaultButtonChanged = true;
+				}
+				showIcon();
+				showButtons();
+				showText();
+				checkFocus();
+			}
+			
+			private function showButtons():void
+			{
+				btnOK.includeInLayout = btnOK.visible = false;
+				btnNO.includeInLayout = btnNO.visible = false;
+				btnYES.includeInLayout = btnYES.visible = false;
+				btnCancel.includeInLayout = btnCancel.visible = false;
+				
+				for each (var button:Button in buttons) 
+				{
+					button.width = buttonWidth;
+					button.height = buttonHeight;
+					button.includeInLayout = button.visible = true;
+					button.addEventListener(MouseEvent.CLICK, clickHandler);
+					button.addEventListener(KeyboardEvent.KEY_DOWN, keyDownHandler);
+					button.owner = this;
+				}
+			}
+			
+			/**
+			 *  @private
+			 *  Remove the popup and dispatch Click event corresponding to the Button Pressed.
+			 */
+			private function removeAlert(buttonPressed:String):void
+			{
+				var alert:AlertAdvance = this;
+				
+				alert.visible = false;
+				
+				var closeEvent:CloseEvent = new CloseEvent(CloseEvent.CLOSE);
+				if (buttonPressed == "YES")
+					closeEvent.detail = AlertAdvance.YES;
+				else if (buttonPressed == "NO")
+					closeEvent.detail = AlertAdvance.NO;
+				else if (buttonPressed == "OK")
+					closeEvent.detail = AlertAdvance.OK;
+				else if (buttonPressed == "CANCEL")
+					closeEvent.detail = AlertAdvance.CANCEL;
+				alert.dispatchEvent(closeEvent);
+				
+				mx.managers.PopUpManager.removePopUp(alert);
+				
+			}
+			/**
+			 *  @private
+			 */
+			private function checkFocus():void
+			{
+				if (defaultButtonChanged && defaultButton)
+				{
+					defaultButtonChanged = false;
+					
+					if (this is IFocusManagerContainer)
+					{
+						var sm:ISystemManager = this.systemManager;
+						var awm:IActiveWindowManager = 
+							IActiveWindowManager(sm.getImplementation("mx.managers::IActiveWindowManager"));
+						if (awm)
+							awm.activate(this);
+					}
+					(defaultButton as UIComponent).tabEnabled = false;
+					(defaultButton as UIComponent).setFocus();
+				}
+			}
+			/**
+			 *  @private
+			 */
+			override protected function keyDownHandler(event:KeyboardEvent):void
+			{
+				
+				if (event.keyCode == Keyboard.ESCAPE)
+				{
+					if ((buttonFlags & AlertAdvance.CANCEL) || !(buttonFlags & AlertAdvance.NO))
+						removeAlert("CANCEL");
+					else if (buttonFlags & AlertAdvance.NO)
+						removeAlert("NO");
+				}
+			}
+			/**
+			 *  @private
+			 *  On a button click, dismiss the popup and send notification.
+			 */
+			private function clickHandler(event:MouseEvent):void
+			{
+				var name:String = Button(event.currentTarget).name;
+				removeAlert(name);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+</s:Panel>

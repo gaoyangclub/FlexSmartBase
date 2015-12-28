@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" skinClass="com.best.web.gyorg.library.skin.ImageButtonSkin" >
+	<fx:Script>
+		<![CDATA[
+//			import mx.events.FlexEvent;
+			
+//			private function init(e:FlexEvent):void
+//			{
+//				
+//			}
+			private var _source:Object;//绑定的皮肤
+			[Bindable]
+			public function get source():Object
+			{
+				return _source;
+			}
+			public function set source(value:Object):void
+			{
+				_source = value;
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+</s:Button>

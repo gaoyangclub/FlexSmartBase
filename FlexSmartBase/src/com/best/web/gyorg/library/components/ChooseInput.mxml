@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="init(event)" xmlns:component="com.best.web.htyt.view.component.*" xmlns:components="com.best.web.gyorg.library.components.*" >
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.controller.DropDownControllerModify;
+			
+			import flash.filters.DropShadowFilter;
+			
+			import mx.collections.IList;
+			import mx.core.FlexGlobals;
+			import mx.core.UIComponent;
+			import mx.events.DropdownEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			import spark.events.TextOperationEvent;
+			
+			private function init(e:FlexEvent):void
+			{
+				initDropDown();
+//				if(listSelect.parent == this){
+//					this.removeElement(listSelect);
+//				}
+			}
+			
+			private var inputDropDownController:DropDownControllerModify;
+			private function initDropDown():void
+			{
+				inputDropDownController = new DropDownControllerModify();
+				inputDropDownController.systemManager = FlexGlobals.topLevelApplication.systemManager;
+//					this.systemManager;
+				inputDropDownController.openComponent = txtRange;//当划入分钟触发
+				inputDropDownController.dropDown = listSelect;
+				inputDropDownController.rollOverOpenDelay = 300;
+				inputDropDownController.rollOutCloseDelay = 100;
+				inputDropDownController.addEventListener(DropdownEvent.OPEN,onInputDropOpen);
+				inputDropDownController.addEventListener(DropdownEvent.CLOSE,onInputDropClose);
+			}
+			
+			private function onInputDropClose(e:Event):void
+			{
+//				listSelect.visible = false;
+				PopUpManager.removePopUp(listSelect);
+			}
+			
+			private function onInputDropOpen(e:Event):void
+			{
+//				listSelect.visible = true;
+				measureListPos();//打开的时候重新计算
+				txtRange.setFocus();//设置成焦点
+				PopUpManager.addPopUp(listSelect,this);
+				listSelect.selectedIndex = -1;
+			}
+			
+			[Bindable]
+			private var _minimum:Number = 0;
+			public function get minimum():Number
+			{
+				return _minimum;
+			}
+			/**
+			 * 设置最小值
+			 * */
+			public function set minimum(value:Number):void
+			{
+				_minimum = value;
+			}
+			[Bindable]
+			private var _maximum:Number = 100;
+			public function get maximum():Number
+			{
+				return _maximum;
+			}
+			/**
+			 * 设置最大值
+			 * */
+			public function set maximum(value:Number):void
+			{
+				_maximum = value;
+			}
+			
+//			private var _text:String;
+			[Bindable(event="textChange")]
+			public function get text():String
+			{
+				return txtRange.text;//txtRange != null ? txtRange.text : _text;
+			}
+			
+			public function set text(value:String):void
+			{
+				txtRange.text = value;
+//				mySpiner.value = Number(value);
+//				txtRange.text = _text;
+			}
+			
+//			private var _value:Number;
+			[Bindable(event="valueChange")]
+			public function get value():Number
+			{
+				return Number(this.text);
+			}
+
+			public function set value(value:Number):void
+			{
+				this.text = value + '';
+			}
+			
+			
+			private function dispatchChange():void
+			{
+				dispatchEvent(new Event("valueChange"));//反向绑定的数据变化
+				dispatchEvent(new Event("textChange"));//反向绑定的数据变化
+				dispatchEvent(new Event("change"));//时间变化
+			}
+			
+			private function txtChange(e:TextOperationEvent):void
+			{
+				var label:RangeNumberInput = e.currentTarget as RangeNumberInput;
+				if(label != null){
+					dispatchChange();//刷新数据
+				}
+			}
+			
+			private function spinnerChange(e:Event):void
+			{
+				showText(mySpinner.value);
+			}
+			
+			private function showText(value:Number):void
+			{
+				txtRange.text = value + "";
+				dispatchChange();//刷新数据
+			}
+			
+			private function onListChange(event:IndexChangeEvent):void
+			{
+				if(listSelect.selectedItem != null){
+					var selectedItem:Object = listSelect.selectedItem;
+					if(selectedItem != null){
+						if(selectedItem.hasOwnProperty(_labelField)){
+							showText(selectedItem[_labelField]);//显示数据
+						}else{
+							showText(Number(selectedItem));//他自己就是数据
+						}
+					}
+				}
+			}
+			[Bindable]
+			private var _dataProvider:IList;//快捷选择数据数组
+			public function get dataProvider():IList
+			{
+				return _dataProvider;
+			}
+			/**
+			 * 设置可选择的数据快捷输入 例:[1,3,5]
+			 * */
+			public function set dataProvider(value:IList):void
+			{
+				_dataProvider = value;
+				//设置显示的个数
+				if(value != null){
+					if(value.length > _maxColumnCount){
+						_columnCount = _maxColumnCount;
+					}else{
+						_columnCount = value.length;
+					}
+				}
+			}
+			[Bindable]
+			private var _labelField:String = "label";
+			public function set labelField(value:String):void
+			{
+				_labelField = value;
+			}
+			[Inspectable(category="Data", defaultValue="label")]
+			public function get labelField():String
+			{
+				return _labelField;
+			}
+				
+			[Bindable]
+			private var _columnCount:int;//显示的列数
+			private var _maxColumnCount:int = 10;
+			public function set maxColumnCount(value:int):void
+			{
+				_maxColumnCount = value;
+			}
+			
+			[Bindable]
+			private var _showSpinner:Boolean;
+			public function get showSpinner():Boolean
+			{
+				return _showSpinner;
+			}
+			public function set showSpinner(value:Boolean):void
+			{
+				_showSpinner = value;
+				if(value){
+					container.addElement(mySpinner);
+				}else{
+					if(mySpinner.parent == container)container.removeElement(mySpinner);
+				}
+			}
+			[Bindable]
+			private var _maxChars:int;
+			public function get maxChars():int
+			{
+				return _maxChars;
+			}
+			public function set maxChars(value:int):void
+			{
+				_maxChars = value;
+			}
+			
+			[Bindable]
+			private var _stepSize:Number = 1;
+			public function get stepSize():Number
+			{
+				return _stepSize;
+			}
+			/**
+			 * 按上下键变化的值
+			 * */
+			public function set stepSize(value:Number):void
+			{
+				_stepSize = value;
+			}
+			
+			private function listSelectResizeHandler(e:ResizeEvent):void
+			{
+				//尺寸变化时改变
+				measureListPos();
+			}
+			
+			private function measureListPos():void{
+				var gp:Point = this.localToGlobal(new Point(container.x,container.y));
+				//				var lp:Point = this.globalToLocal(gp);
+				listSelect.x = gp.x + (container.width - listSelect.width) / 2;
+				listSelect.y = gp.y - listSelect.height;// container.height - 3;
+			}
+			
+			public function getPopupDialogInstance():UIComponent{
+				return listSelect;
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 只是作为数据实例使用 -->
+		<s:List id="listSelect" borderColor="#4364A3"
+				resize="listSelectResizeHandler(event)"
+				fontWeight="normal" labelField="{_labelField}"
+				color="#FFFFFF" contentBackgroundColor="#5E92F2" dataProvider="{_dataProvider}"
+				filters="{[new DropShadowFilter(3,45,0,.5)]}" minWidth="0"
+				change="onListChange(event)"
+				>
+			<s:layout>
+				<s:TileLayout horizontalAlign="center" verticalAlign="middle" columnAlign="justifyUsingWidth" requestedColumnCount="{_columnCount}"/>
+			</s:layout>
+		</s:List>
+		<s:Spinner id="mySpinner" 
+				   value="{Number(txtRange.text)}"
+				   height="100%" stepSize="{_stepSize}"
+				   allowValueWrap="true" minimum="{_minimum}" maximum="{_maximum}" change="spinnerChange(event)"/>
+	</fx:Declarations>
+	<!--focusIn="txtfocusInHandler(event)"
+	focusOut="txtfocusOutHandler(event)" -->
+	<s:HGroup width="100%" height="100%" gap="0" id="container">
+		<components:RangeNumberInput id="txtRange" minimum="{_minimum}" maximum="{_maximum}"
+									width="100%"
+									height="100%" 
+									maxChars="{_maxChars}"
+									contentBackgroundAlpha="0.0" 
+									textAlign="center"
+									change="txtChange(event)"
+									/>
+		<!-- borderColor="#FFC46B" text="{_text}" -->
+	</s:HGroup>
+</s:Group>

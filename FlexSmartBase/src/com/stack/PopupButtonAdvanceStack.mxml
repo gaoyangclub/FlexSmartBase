@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:components="com.best.web.gyorg.library.components.*"
+		 paddingLeft="50" paddingTop="20"
+		 width="100%" height="100%"
+		 creationComplete="vgroup1_creationCompleteHandler(event)"
+		 >
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.util.toast.AlertToastManager;
+			
+			import mx.events.FlexEvent;
+			
+			private function vgroup1_creationCompleteHandler(e:FlexEvent):void
+			{
+				childSelecter.textInput.editable = false;
+			}
+			
+			private function combobox1_valueCommitHandler(e:FlexEvent):void
+			{
+				popupButtonAdvance.popUp = childSelecter.selectedItem.value;
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<s:Button id="testButton" label="测试按钮" cornerRadius="2" minWidth="115" height="30" buttonMode="true"/>
+		<s:List id="testList" minWidth="115" minHeight="100">
+			<s:dataProvider>
+				<s:ArrayCollection>
+					<fx:Array>
+						<fx:Object label="数据1"/>
+						<fx:Object label="数据2"/>
+						<fx:Object label="数据3"/>
+						<fx:Object label="数据4"/>
+					</fx:Array>
+				</s:ArrayCollection>
+			</s:dataProvider>
+		</s:List>
+		<s:RadioButtonGroup id="radioGroup"  />
+		<s:HGroup id="testRadio" buttonMode="true">
+			<s:RadioButton label="选项1" selected="true" groupName="abc" />
+			<s:RadioButton label="选项2" groupName="abc" />
+			<s:RadioButton label="选项3" groupName="abc" />
+		</s:HGroup>
+	</fx:Declarations>
+	<!--<s:Spacer height="100" />-->
+		<!--left,right,above,below,center,topLeft-->
+	
+	<s:Form>
+		<s:FormItem label="">
+			<s:Label fontWeight="bold" fontSize="18" text="有独立操作按钮的弹出按钮" />
+		</s:FormItem>
+		<s:FormItem label="弹出组件">
+			<s:ComboBox id="childSelecter" valueCommit="combobox1_valueCommitHandler(event)" selectedIndex="0">
+				<s:dataProvider>
+					<s:ArrayCollection>
+						<fx:Array>
+							<fx:Object label="按钮" value="{testButton}" />
+							<fx:Object label="列表" value="{testList}" />
+							<fx:Object label="单选组" value="{testRadio}" />
+						</fx:Array>
+					</s:ArrayCollection>
+				</s:dataProvider>
+			</s:ComboBox>
+		</s:FormItem>
+		<s:FormItem label="按钮圆角半径">
+			<mx:Slider minimum="0" maximum="10" value="5" snapInterval=".1" id="cornerSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="按钮背景色">
+			<mx:ColorPicker id="backColor" selectedColor="0x0099CC"/>
+		</s:FormItem>
+		<s:FormItem label="文本色">
+			<mx:ColorPicker id="textColor" selectedColor="0xFFFFFF"/>
+		</s:FormItem>
+		<!--<s:FormItem label="边框色">
+			<mx:ColorPicker id="borderColor" selectedColor="red"/>
+		</s:FormItem>-->
+		<s:FormItem label="">
+			<!--<components:SingleColorButton label="测试按钮" cornerRadius="{cornerSlider.value}" color="{textColor.selectedColor}" width="100" height="30"
+										  backgroundColor="{backColor.selectedColor}"  />-->
+			<components:PopupButtonAdvance id="popupButtonAdvance" click="{AlertToastManager.toast(popupButtonAdvance.label)}"
+										   minWidth="125" label="单独操作按钮" height="30" cornerRadius="{cornerSlider.value}" solidColor="{textColor.selectedColor}" 
+										   fillColor="{backColor.selectedColor}">
+				<!-- borderColor="{borderColor.selectedColor}"  -->
+				<!--<components:popUp>
+				popUpPosition="{radioGroup.selectedValue}"
+				</components:popUp>-->
+			</components:PopupButtonAdvance>
+		</s:FormItem>
+		<!--<s:FormItem label="显示边框">
+		<s:CheckBox id="borderCheck" />
+		</s:FormItem>-->
+	</s:Form>
+	
+	
+	
+</s:VGroup>

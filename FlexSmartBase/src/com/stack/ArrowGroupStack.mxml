@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns:components="com.best.web.gyorg.library.components.*"
+		  width="100%" height="100%" paddingLeft="50"
+		  >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Form>
+		<s:layout>
+			<s:TileLayout requestedColumnCount="2" verticalGap="0" verticalAlign="middle" />
+		</s:layout>
+		<s:FormItem label="宽度:">
+			<mx:Slider minimum="10" maximum="100" value="50" snapInterval="1" id="widthSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="高度:">
+			<mx:Slider minimum="10" maximum="100" value="50" snapInterval="1" id="heightSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="direction:">
+			<s:ComboBox id="directionCB" selectedIndex="0">
+				<s:dataProvider>
+					<s:ArrayCollection>
+						<fx:Array>
+							<fx:Object label="left" />
+							<fx:Object label="right" />
+							<fx:Object label="up" />
+							<fx:Object label="down" />
+						</fx:Array>
+					</s:ArrayCollection>
+				</s:dataProvider>
+			</s:ComboBox>
+		</s:FormItem>
+		<s:FormItem label="borderAlpha:">
+			<mx:Slider minimum="0" maximum="1" value="1" snapInterval=".01" id="borderAlphaSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="borderColor:">
+			<mx:ColorPicker id="borderColorPicker" selectedColor="0xFF6600"/>
+		</s:FormItem>
+		<s:FormItem label="borderWeight:">
+			<mx:Slider minimum="0" maximum="5" value="2" snapInterval=".1" id="borderWeightSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="backgroundColor:">
+			<mx:ColorPicker id="backgroundColorPicker" selectedColor="0xFFFF00"/>
+		</s:FormItem>
+		<s:FormItem label="backgroundAlpha:">
+			<mx:Slider minimum="0" maximum="1" value=".1" snapInterval=".01" id="backgroundAlphaSlider" height="10" liveDragging="true"/>
+		</s:FormItem>
+		<s:FormItem label="isClosed:">
+			<s:CheckBox id="isClosedCheck" label="是否封闭三角形" />
+		</s:FormItem>
+	</s:Form>
+	
+	<components:ArrowGroup width="{widthSlider.value}" height="{heightSlider.value}" direction="{directionCB.selectedItem.label}" borderAlpha="{borderAlphaSlider.value}"
+						   borderColor="{borderColorPicker.selectedColor}" borderWeight="{borderWeightSlider.value}" backgroundColor="{backgroundColorPicker.selectedColor}"
+						   backgroundAlpha="{backgroundAlphaSlider.value}" isClosed="{isClosedCheck.selected}"
+						   />
+	
+</s:VGroup>

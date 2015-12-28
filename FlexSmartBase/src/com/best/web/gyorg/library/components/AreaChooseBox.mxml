@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="300" height="26" xmlns:components="com.best.web.gyorg.library.components.*" 
+		 initialize="init(event)"
+		 >
+	<fx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.controller.DropDownControllerModify;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.UIComponent;
+			import mx.events.DropdownEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			private function init(event:FlexEvent):void
+			{
+				initDropDown();
+			}
+			
+			private var dropDownController:DropDownControllerModify;
+			private function initDropDown():void
+			{
+				dropDownController = new DropDownControllerModify();
+				//				if(_dropDownSystemManager == null){
+				dropDownController.systemManager = this.systemManager;
+				//				}else{
+				//					dropDownController.systemManager = _dropDownSystemManager;
+				//				}
+				dropDownController.openComponent = clickGroup;//当划入小时触发
+				dropDownController.dropDown = myAreaTab;
+				//				dropDownController.rollOverOpenDelay = 300;
+				dropDownController.rollOutCloseDelay = 100;
+				dropDownController.addEventListener(DropdownEvent.OPEN,onAreaDropOpen);
+				dropDownController.addEventListener(DropdownEvent.CLOSE,onAreaDropClose);
+			}
+			
+			private function onAreaDropOpen(event:Event):void
+			{
+				PopUpManager.addPopUp(myAreaTab,this.parentApplication as DisplayObject);
+				myAreaTab.selectedLevel = 0;//重新打开显示第0个
+				measureHeight();
+			}
+			
+			private function measureHeight():void
+			{
+				var globalPoint:Point = this.localToGlobal(new Point(0,clickGroup.y + clickGroup.height));
+				//全局坐标
+				myAreaTab.x = globalPoint.x;
+//				if(globalPoint.y + myAreaTab.height > stage.stageHeight){//超过场景高度
+//					myAreaTab.y = globalPoint.y - myAreaTab.height - clickGroup.height;
+//				}else{
+					myAreaTab.y = globalPoint.y;
+//				}
+			}
+			
+			private function onAreaDropClose(e:Event = null):void
+			{
+				PopUpManager.removePopUp(myAreaTab);
+			}
+			
+			public function close():void{
+				dropDownController.closeDropDown(false,true);
+				isKeyWord = false;//非关键字状态
+			}
+			
+			private var _selectedItems:Array = [];
+			public function set selectedItems(value:Array):void
+			{
+				_selectedItems = value;//重新刷新数据列表
+				showAreaData();
+			}
+			/**
+			 * 选中的数据列表 根据等级的索引值依次排列
+			 *   */
+			public function get selectedItems():Array
+			{
+				return _selectedItems;
+			}
+			//如果选中的是前一级 后面等级的数据就清除掉
+			private function myAreaTabChanging(e:Event):void
+			{
+//				e.preventDefault();//可以阻止change事件发生
+				var index:int = myAreaTab.selectedLevel;
+				var data:Object = myAreaTab.selectedItem;
+				if(_selectedItems[index] != null){//已经存在了
+					for (var i:int = index + 1; i < _selectedItems.length; i++) 
+					{
+						_selectedItems[i] = null;//清空数据
+					}
+				}
+				_selectedItems[index] = data;
+				showAreaData();
+				
+				isKeyWord = true;//显示选中的关键字
+			}
+			
+			private var _selectedOverAndColse:Boolean = true;
+			/**
+			 * 全部选完自动关闭界面
+			 * */
+			public function set selectedOverAndColse(value:Boolean):void
+			{
+				_selectedOverAndColse = value;
+			}
+			
+			private function myAreaTabChange(e:Event):void
+			{
+				throwChangeEvent();
+			}
+			
+			private function throwChangeEvent():void
+			{
+				dispatchEvent(new Event(Event.CHANGE));
+			}
+			//根据存入的数据显示地址等。。。
+			private function showAreaData():void
+			{
+				var itemLength:Number = _selectedItems.length;
+				var label:String = '';
+				for (var i:int = 0; i < itemLength; i++) 
+				{
+					var data:Object = _selectedItems[i];
+					if(data != null){
+						label += data[myAreaTab.labelField] + '  ';
+					}
+				}
+				inputArea.text = label;
+			}
+			/**
+			 * 显示文本的字段名 
+			 * 默认:"label"
+			 *   */
+			public function set labelField(value:String):void
+			{
+				myAreaTab.labelField = value;
+			}
+			public function get labelField():String
+			{
+				return myAreaTab.labelField;
+			}
+			public function get childNodeField():String
+			{
+				return myAreaTab.childNodeField;
+			}
+			/**
+			 * 访问子节点的字段名
+			 * 默认:"child"
+			 *   */
+			public function set childNodeField(value:String):void
+			{
+				myAreaTab.childNodeField = value;
+			}
+			/**
+			 * 整体树结构数据
+			 *   */
+			public function set dateProvider(value:ArrayCollection):void
+			{
+				myAreaTab.dateProvider = value;
+				clearAll();
+			}
+			/**
+			 * 清结构
+			 **/
+			private function clearAll():void
+			{
+				close();
+				inputArea.text = '';
+			}
+			/**
+			 * tab的名称 例:[省。市，区，街道...]
+			 *   */
+			public function set levelsName(value:Array):void
+			{
+				myAreaTab.levelsName = value;
+			}
+			/**
+			 * 分类字段组合二维数组 例:[[A,B,C,D,E..G],[H,I,J,K,...]
+			 *   */
+			public function set groupsName(value:Array):void
+			{
+				myAreaTab.groupsName = value;
+			}
+			/**
+			 * 匹配的所属分组字段名
+			 * 默认:"group"
+			 *   */
+			public function set groupField(value:String):void
+			{
+				myAreaTab.groupField = value;
+			}
+			/**
+			 *	由levelsName长度确定几个等级
+			 *   */
+			public function get totalLevels():int{
+				return myAreaTab.totalLevels;
+			}
+			/**
+			 * 现在选中什么等级
+			 *   */
+			public function get selectedLevel():int{
+				return myAreaTab.selectedLevel;
+			}
+			/**
+			 * 当前选中的数据
+			 *   */
+			public function get selectedItem():Object
+			{
+				return myAreaTab.selectedItem;
+			}
+			/**
+			 * 文本提示信息
+			 *  @private
+			 */
+			public function set prompt(value:String):void
+			{
+				inputArea.prompt = value;
+			}
+			/**
+			 * 获取显示的文本
+			 *   */
+			public function get text():String{
+				return inputArea.text;
+			}
+			public function set text(value:String):void{
+				inputArea.text = value;
+			}
+			/**
+			 * 重新替换某个等级的数据集
+			 * data类型为Array ArrayCollection Vector 或者类似结构的数组可以遍历即可
+			 *   */
+			public function changeTabData(level:int,data:Object):void{
+				myAreaTab.changeTabData(level,data);
+			}
+			/**
+			 * 获取弹出的实例
+			 *   */
+			public function getPopupDialogInstance():UIComponent{
+				return myAreaTab;
+			}
+			
+			private function keywordFocusIn():void
+			{
+				if(_isKeyWord){
+//					inputArea.selectAll();//全选
+				}
+			}
+			
+			private var _isKeyWord:Boolean = true;//是否点击的关键字显示为主状态
+			private function set isKeyWord(value:Boolean):void
+			{
+				if(_keywordOnly && !value){//只能键入关键字
+					return;
+				}
+				_isKeyWord = value;
+				updateInputStyle();
+			}
+			
+			private function textChange(e:Event):void
+			{
+				if(!_isKeyWord){//在非显示关键字状态
+//					TimerManager.setTimeOut(800,delayTextSearch);//延迟搜索
+//					isKeyWord = true;
+				}else{
+//					TimerManager.clearTimeOut(delayTextSearch);//如果是高级搜索介入的就清除计时器
+					isKeyWord = false;
+				} 
+			}
+			[Bindable]
+			private var _keywordOnly:Boolean;//只能搞关键字
+			public function set keywordOnly(value:Boolean):void
+			{
+				_keywordOnly = value;
+			}
+			
+			private function updateInputStyle():void
+			{
+				if(inputArea != null){
+					if(_isKeyWord){
+//						inputArea.width = 500;
+						inputArea.setStyle("contentBackgroundColor",0xFFFF00);
+					}else{
+//						inputArea.width = 370;
+						inputArea.setStyle("contentBackgroundColor",0xFFFFFF);
+					}
+				}
+			}
+			[Bindable]
+			private var _areaWidth:Number;
+			public function set areaWidth(value:Number):void
+			{
+				_areaWidth = value;
+			}
+//			private var _columnWidth:Number = 50;
+//			public function set columnWidth(value:Number):void
+//			{
+//				myAreaTab.columnWidth = value;
+//			}
+			
+			private function myAreaTabResize(e:ResizeEvent):void
+			{
+				measureHeight();
+			}
+			
+			private function myAreaTabSelectedOver(event:Event):void
+			{
+				if(_selectedOverAndColse){//全部选择完毕测试是否能自动关闭
+					close();
+				}
+			}
+			
+			public function get autoSingleTurnNext():Boolean
+			{
+				return myAreaTab.autoSingleTurnNext;
+			}
+
+			public function set autoSingleTurnNext(value:Boolean):void
+			{
+				myAreaTab.autoSingleTurnNext = value;
+			}
+			
+			public function set listHorizontalGap(value:Number):void
+			{
+				myAreaTab.listHorizontalGap = value;
+			}
+			
+			public function set listVerticalGapGap(value:Number):void
+			{
+				myAreaTab.listVerticalGapGap = value;
+			}
+			
+			public function set tagPaddingTop(value:Number):void
+			{
+				myAreaTab.tagPaddingTop = value;
+			}
+			
+//			[Bindable]
+//			private var _columnCount:int = 5;//默认5列
+//			public function get columnCount():int
+//			{
+//				return _columnCount;
+//			}
+//			
+//			public function set columnCount(value:int):void
+//			{
+//				_columnCount = value;
+//			}
+			
+		]]>
+	</fx:Script>
+	<!-- columnCount="{_columnCount}" -->
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<components:AreaTabNavigator id="myAreaTab" width="{_areaWidth}" 
+									 changing="myAreaTabChanging(event)" change="myAreaTabChange(event)"
+									 selectedOver="myAreaTabSelectedOver(event)"
+									 resize="myAreaTabResize(event)"/>
+	</fx:Declarations>
+	<s:HGroup id="clickGroup" gap="-1" width="100%" height="100%">
+		<s:TextInput id="inputArea" width="100%" height="100%" change="textChange(event)" click="keywordFocusIn()" editable="{!_keywordOnly}"/>
+		<s:Button right="0" width="20" id="btnNode" 
+				  skinClass="spark.skins.spark.ScrollBarDownButtonSkin" height="100%"/>
+	</s:HGroup>
+</s:Group>

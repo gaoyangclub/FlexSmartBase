@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 gap="1" mouseEnabled="false"
+		 creationComplete="group1_creationCompleteHandler(event)"
+		 >
+	<fx:Metadata>
+		/*[Event(name="labelClick", type="flash.events.Event")]*/
+		
+		[Style(name="solidColor", type="uint",defaultValue="0x2e527e")]
+		[Style(name="borderColor", type="uint",defaultValue="0x637d9e")]
+		[Style(name="borderAlpha", type="uint",defaultValue="0x637d9e")]
+		[Style(name="cornerRadius", type="uint",defaultValue="0x637d9e")]
+		[Style(name="fillColor", type="uint",defaultValue="0xFFFFFF")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import mx.core.IVisualElement;
+			import mx.events.FlexEvent;
+			import mx.events.SandboxMouseEvent;
+			
+			import spark.components.PopUpPosition;
+			
+			[Bindable]
+			private var _popUpPosition:String = PopUpPosition.ABOVE;
+			
+			[Inspectable(category="General", enumeration="left,right,above,below,center,topLeft", defaultValue="above")]
+			public function set popUpPosition(value:String):void
+			{
+				if (_popUpPosition == value)
+					return;
+				_popUpPosition = value;
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				leftButton.setStyle("cornerRadius", getStyle("cornerRadius"));
+				leftButton.setStyle("solidColor", getStyle("solidColor"));
+				leftButton.setStyle("color", getStyle("solidColor"));
+				leftButton.setStyle("fillColor", getStyle("fillColor"));
+				rightButton.setStyle("cornerRadius", getStyle("cornerRadius"));
+				rightButton.setStyle("solidColor", getStyle("solidColor"));
+				rightButton.setStyle("fillColor", getStyle("fillColor"));
+				
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			
+			
+			protected function popUp_clickHandler(e:MouseEvent):void
+			{
+				closeDropDown();
+			}
+			
+			private var closeOnResize:Boolean = true;
+			private function addCloseOnResizeTrigger():void
+			{
+				if (closeOnResize)
+					systemManager.getSandboxRoot().addEventListener(Event.RESIZE, systemManager_resizeHandler, false, 0, true);
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_DOWN, systemManager_mouseDownHandler);
+				systemManager.getSandboxRoot().addEventListener(SandboxMouseEvent.MOUSE_DOWN_SOMEWHERE, systemManager_mouseDownHandler);
+				addCloseOnResizeTrigger();
+				
+				addPopUpContainer();
+			}
+			
+			protected function systemManager_resizeHandler(event:Event):void
+			{
+				closeDropDown();
+			}
+			
+			private var _popUpContainer:IVisualElement;
+			public function get popUp():IVisualElement
+			{
+				return _popUpContainer;
+			}
+			public function set popUp(value:IVisualElement):void
+			{
+				_popUpContainer = value;
+				
+				addPopUpContainer();
+			}
+			
+			private function addPopUpContainer():void
+			{
+				if(popUpGroup != null && _popUpContainer != null){
+					popUpGroup.removeAllElements();
+					popUpGroup.addElement(_popUpContainer);
+				}
+			}
+			
+			protected function systemManager_mouseDownHandler(e:Event):void
+			{
+				if(e.target == this || this.contains(e.target as DisplayObject)
+					|| e.target == popUp || 
+					popUp && (popUp as DisplayObjectContainer).contains(e.target as DisplayObject)){
+					return;
+				}
+				closeDropDown()//焦点失去关闭
+			}
+			
+			private function closeDropDown():void
+			{
+				popUpAnchor.displayPopUp = false;
+			}
+			
+			private function labelDisplayClick(e:Event):void
+			{
+				e.stopImmediatePropagation();//防止外层容器继续触发
+				dispatchEvent(e);
+			}
+			
+			[Bindable]
+			public var label:String;
+			
+			protected function rightButtonClick(e:MouseEvent):void
+			{
+				e.stopImmediatePropagation();//防止外层容器继续触发
+				popUpAnchor.displayPopUp = true;
+			}
+			
+		]]>
+	</fx:Script>
+	<s:PopUpAnchor id="popUpAnchor" 
+				   left="0" right="0" top="0" bottom="0"
+				   popUpPosition="{_popUpPosition}" popUpWidthMatchesAnchorWidth="false" >
+		<s:Group id="popUpGroup" click="popUp_clickHandler(event)" />
+	</s:PopUpAnchor>
+	<s:Button id="leftButton" tabEnabled="false" label="{label}" height="100%" width="100%"
+			  skinClass="com.best.web.gyorg.library.skin.PopupButtonLeftFlatSkin" click="labelDisplayClick(event)"
+			  />  
+	<s:Button id="rightButton" tabEnabled="false" height="100%" minWidth="30"
+			  skinClass="com.best.web.gyorg.library.skin.PopupButtonRightFlatSkin" click="rightButtonClick(event)"
+			  />  
+</s:HGroup>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="group1_creationCompleteHandler(event)"
+		 click="{popUpAnchor.displayPopUp = true}" toolTip="{label}"
+		 >
+	<fx:Metadata>
+		[Style(name="solidColor", type="uint",defaultValue="0x2e527e")]
+		[Style(name="cornerRadius", type="uint",defaultValue="0x637d9e")]
+		[Style(name="fillColor", type="uint",defaultValue="0xFFFFFF")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.skin.PopupAnchorFlatSkin;
+			
+			import mx.core.IVisualElement;
+			import mx.events.FlexEvent;
+			import mx.events.SandboxMouseEvent;
+			
+			import spark.components.PopUpPosition;
+			
+			[Bindable]
+			private var _popUpPosition:String = PopUpPosition.ABOVE;
+			
+			[Inspectable(category="General", enumeration="left,right,above,below,center,topLeft", defaultValue="above")]
+			public function set popUpPosition(value:String):void
+			{
+				if (_popUpPosition == value)
+					return;
+				_popUpPosition = value;
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				openButton.setStyle("cornerRadius", getStyle("cornerRadius"));
+				labelDisplay.setStyle("color", getStyle("solidColor"));
+				openButton.setStyle("solidColor", getStyle("solidColor"));
+				openButton.setStyle("fillColor", getStyle("fillColor"));
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			
+			protected function popUpClickHandler(e:MouseEvent):void
+			{
+				commitPopAreaClick();
+			}
+			
+			private var closeOnResize:Boolean = true;
+			private function addCloseOnResizeTrigger():void
+			{
+				if (closeOnResize)
+					systemManager.getSandboxRoot().addEventListener(Event.RESIZE, systemManager_resizeHandler, false, 0, true);
+			}
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				systemManager.getSandboxRoot().addEventListener(MouseEvent.MOUSE_DOWN, systemManager_mouseDownHandler);
+				systemManager.getSandboxRoot().addEventListener(SandboxMouseEvent.MOUSE_DOWN_SOMEWHERE, systemManager_mouseDownHandler);
+				addCloseOnResizeTrigger();
+				
+				addPopUpContainer();
+			}
+			
+			protected function systemManager_resizeHandler(event:Event):void
+			{
+				closeDropDown();
+			}
+			
+			private var _popUpContainer:IVisualElement;
+			public function get popUp():IVisualElement
+			{
+				return _popUpContainer;
+			}
+			public function set popUp(value:IVisualElement):void
+			{
+				_popUpContainer = value;
+				
+				addPopUpContainer();
+			}
+			
+			private function addPopUpContainer():void
+			{
+				if(popUpGroup != null && _popUpContainer != null){
+					popUpGroup.removeAllElements();
+					popUpGroup.addElement(_popUpContainer);
+				}
+			}
+			
+			protected function systemManager_mouseDownHandler(e:Event):void
+			{
+				if(e.target == this || this.contains(e.target as DisplayObject)
+					|| e.target == popUp || 
+					popUp && (popUp as DisplayObjectContainer).contains(e.target as DisplayObject)){
+					return;
+				}
+				closeDropDown()//焦点失去关闭
+			}
+			
+			protected function closeDropDown():void
+			{
+				popUpAnchor.displayPopUp = false;
+			}
+			
+			[Bindable]
+			public var label:String;
+			/**
+			 * 确定弹出部分被点击
+			 * */
+			protected function commitPopAreaClick():void
+			{
+				closeDropDown();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:PopUpAnchor id="popUpAnchor" 
+				   left="0" right="0" top="0" bottom="0"
+				   popUpPosition="{_popUpPosition}" popUpWidthMatchesAnchorWidth="false" >
+		<s:Group id="popUpGroup" click="popUpClickHandler(event)" />
+	</s:PopUpAnchor>
+	<s:Button id="openButton" left="0" right="0" top="0" bottom="0" focusEnabled="false" tabEnabled="false"
+			  skinClass="com.best.web.gyorg.library.skin.PopupAnchorFlatSkin"/>  
+	<s:Label id="labelDisplay" text="{label}" verticalAlign="middle" maxDisplayedLines="1" 
+			 mouseEnabled="false" mouseChildren="false"
+			 left="7" right="30" top="2" bottom="2" maxWidth="75" verticalCenter="1" /> 
+</s:Group>

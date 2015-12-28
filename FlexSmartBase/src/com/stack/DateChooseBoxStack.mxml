@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:components="com.best.web.gyorg.library.components.*"
+		  paddingLeft="50" paddingTop="20"
+		  width="100%" height="100%"
+		  >
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Form>
+		<s:FormItem label="">
+			<s:Label fontWeight="bold" fontSize="18" text="可设置起始和终止时间的日历控件" />
+		</s:FormItem>
+		<!--<s:FormItem label="起始和终止的时间间隔">
+			<s:NumericStepper minimum="1" maximum="100" id="gapDayStepper" />
+		</s:FormItem>-->
+		<s:FormItem label="">
+			<s:CheckBox label="显示清除按钮" selected="true" id="clearCheck" />
+		</s:FormItem>
+		<s:FormItem label="">
+			<!-- dayGap="{gapDayStepper.value}"  -->
+			<components:DateChooseBox id="dateChooseBox" showClear="{clearCheck.selected}" />
+			<!--<s:Button label="重置" click="{dateChooseBox.resetDate()}"/>-->
+		</s:FormItem>
+	</s:Form>
+</s:VGroup>

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			xmlns:s="library://ns.adobe.com/flex/spark" 
+			xmlns:mx="library://ns.adobe.com/flex/mx" creationComplete="scroller1_creationCompleteHandler(event)"
+			skinClass="com.best.web.gyorg.library.skin.SwitchScrollerSkin">
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.core.IVisualElement;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import spark.components.Button;
+			import spark.components.Group;
+			import spark.components.HGroup;
+			import spark.components.Scroller;
+			import spark.components.TextArea;
+			import spark.components.supportClasses.GroupBase;
+			import spark.components.supportClasses.ScrollerLayout;
+			import spark.core.IViewport;
+			import spark.layouts.BasicLayout;
+			
+			[SkinPart(required="false")]
+			public var scroller:Scroller;
+			
+			[SkinPart(required="false")]
+			public var btnLeft:Button;
+			[SkinPart(required="false")]
+			public var btnRight:Button;
+			
+			[SkinPart(required="false")]
+			public var contenter:HGroup;
+			
+			private function resizeHandler(e:ResizeEvent):void
+			{
+//				if(scroller.horizontalScrollBar == null)return;
+//				trace(scroller.horizontalScrollBar.visible);
+//				var showButton:Boolean = scroller.horizontalScrollBar.visible;
+//				if(showButton){
+//					if(btnLeft.parent == null)contenter.addElementAt(btnLeft,0);
+//					if(btnRight.parent == null)contenter.addElementAt(btnRight,numChildren + 1);
+//				}else{
+//					if(btnLeft.parent == contenter)contenter.removeElement(btnLeft);
+//					if(btnRight.parent == contenter)contenter.removeElement(btnRight);
+//				}
+//				btnRight.width = btnLeft.width =  ? 20 : 0;
+				shieldHorizontalScrollBar();
+			}
+			
+			private function shieldHorizontalScrollBar():void{
+				scroller.horizontalScrollBar.scaleX = scroller.horizontalScrollBar.scaleY = 0;
+			}
+			
+			private function scroller1_creationCompleteHandler(e:FlexEvent):void
+			{
+				btnLeft.addEventListener(FlexEvent.BUTTON_DOWN,clickLeftHandler,false,0,true);
+				btnRight.addEventListener(FlexEvent.BUTTON_DOWN,clickRightHandler,false,0,true);
+				checkScrollBarHeight();
+				
+				var viewport:IViewport = scroller.viewport;
+				viewport.addEventListener(Event.RESIZE, resizeHandler);
+				var scroller:Scroller = scroller;
+				BindingUtils.bindProperty(this,"showOperateButton",scroller.horizontalScrollBar,"visible");
+			}
+			
+			private var _showOperateButton:Boolean;
+			public function get showOperateButton():Boolean
+			{
+				return _showOperateButton;
+			}
+			
+			public function set showOperateButton(value:Boolean):void
+			{
+				_showOperateButton = value;
+				if(value){
+					if(btnLeft.parent == null)contenter.addElementAt(btnLeft,0);
+					if(btnRight.parent == null)contenter.addElementAt(btnRight,contenter.numChildren);
+					shieldHorizontalScrollBar();//显示的情况下再次屏蔽
+				}else{
+					if(btnLeft.parent == contenter)contenter.removeElement(btnLeft);
+					if(btnRight.parent == contenter)contenter.removeElement(btnRight);
+				}
+			}
+			
+			private var _horizontalGapValue:Number = 30;
+			public function get horizontalGapValue():Number
+			{
+				return _horizontalGapValue;
+			}
+			public function set horizontalGapValue(value:Number):void
+			{
+				_horizontalGapValue = value;
+			}
+			private function clickLeftHandler(e:Event):void
+			{
+				targetScrollPosition = scroller.viewport.horizontalScrollPosition - _horizontalGapValue;
+				moveStart();
+			}
+			
+			private function clickRightHandler(e:Event):void
+			{
+				targetScrollPosition = scroller.viewport.horizontalScrollPosition + _horizontalGapValue;
+				moveStart();
+			}
+			
+			private var _step:Number = 6;
+			private var targetScrollPosition:Number;
+			private var preScrollPosition:Number;
+			private function moveStart():void{
+				addEventListener(Event.ENTER_FRAME,onEnterFrame);
+			}
+			
+			private function onEnterFrame(e:Event = null):void
+			{
+				scroller.viewport.horizontalScrollPosition += (targetScrollPosition - scroller.viewport.horizontalScrollPosition) / (_step + 1);
+				if(scroller.viewport.horizontalScrollPosition == preScrollPosition){//表示没有变化
+					//					container.scroller.viewport.horizontalScrollPosition = targetScrollPosition;
+					targetScrollPosition = preScrollPosition;//记录最终的位置
+					moveEnd();
+					return;
+				}
+				preScrollPosition = scroller.viewport.horizontalScrollPosition;
+			}
+			
+			private function moveEnd():void
+			{
+				removeEventListener(Event.ENTER_FRAME,onEnterFrame);
+				//				TimerManager.clearIntervalOut(onEnterFrame);
+			}
+			
+			public function reset():void{
+				moveEnd();
+				scroller.viewport.horizontalScrollPosition = 0;
+			}
+			private var _scrollBarHeight:Number;
+			/**
+			 * 拖动按钮的高度
+			 * */
+			public function set scrollBarHeight(value:Number):void
+			{
+				_scrollBarHeight = value;
+				checkScrollBarHeight();
+			}
+			
+			private function checkScrollBarHeight():void
+			{
+				if(btnLeft == null || btnRight == null)return;//还未初始化完毕
+				if(isNaN(_scrollBarHeight)){
+					btnLeft.percentHeight = btnRight.percentHeight = 100;
+				}else{
+					btnLeft.height = btnRight.height = _scrollBarHeight;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<!--<fx:Declarations>
+		<s:Button left="0" width="20" id="btnLeft" buttonDown="clickLeftHandler(event)" autoRepeat="true"
+				  skinClass="spark.skins.spark.ScrollBarLeftButtonSkin" height="100%" />
+		<s:Button right="0" width="20" id="btnRight" buttonDown="clickRightHandler(event)" autoRepeat="true"
+				  skinClass="spark.skins.spark.ScrollBarRightButtonSkin" height="100%"/>
+	</fx:Declarations>
+	<s:Scroller id="scroller" width="100%" height="100%" verticalScrollPolicy="off" />-->
+</s:SkinnableContainer>

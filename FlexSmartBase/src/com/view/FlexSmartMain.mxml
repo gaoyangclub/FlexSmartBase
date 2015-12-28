@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 title="hello smart base" width="100%" height="100%"
+		 >
+	<s:layout>
+		<s:HorizontalLayout gap="-1" />
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import com.menu.TreeMenuCenter;
+			
+			import mx.core.IVisualElement;
+			
+//			[Bindable]
+//			private var dp:Array= [{name:"one",children:[{name:"two"},{name:"Three"},{name:"Four",children:[{name:"Five"},{name:"Six"}]}]}]
+				
+//			private function tree_labelFunc(item:Object):String {
+//				var suffix:String = "";
+//				if (tree.dataDescriptor.hasChildren(item)) {
+//					suffix = " (" + item.children.length + ")";
+//				}
+//				return item.name.toUpperCase() + suffix;
+//			}
+			
+			private function tree_changeHandler(e:Event):void
+			{
+//				trace(.name);
+				var item:Object = tree.selectedItem;
+				if(item.hasOwnProperty("stack")){
+					var itemClass:Class = item.stack;
+					var itemInstance:IVisualElement = new itemClass();
+					container.removeAllElements();
+					container.addElement(itemInstance);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<mx:Tree id="tree"
+			 dataProvider="{TreeMenuCenter.treeDp}" change="tree_changeHandler(event)" 
+			 labelField="name"
+			 width="200" height="100%" />
+	<s:Group width="100%" height="100%">
+		<s:Rect width="100%" height="100%">
+			<s:stroke>
+				<s:SolidColorStroke color="0" />
+			</s:stroke>
+		</s:Rect>
+		<s:Group width="100%" height="100%" id="container" fontSize="14" fontFamily="微软雅黑">
+			
+		</s:Group>
+	</s:Group>
+</s:Panel>

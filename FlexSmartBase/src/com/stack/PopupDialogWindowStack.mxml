@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  xmlns:dialog="com.best.web.gyorg.library.dialog.*"
+		  width="100%" height="100%" xmlns:components="com.best.web.gyorg.library.components.*" 
+		  >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.dialog.PopupDialogWindow;
+			
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			private function button1_clickHandler(e:MouseEvent):void
+			{
+				var pd:PopupDialogWindow = new PopupDialogWindow();
+				pd.title = "测试标题";
+				pd.showMax = showMaxCheck.selected;
+				pd.showMin = showMinCheck.selected;
+				pd.showClose = showCloseCheck.selected;
+				PopUpManager.addPopUp(pd,FlexGlobals.topLevelApplication as DisplayObject,true);
+				PopUpManager.centerPopUp(pd);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Form>
+		<s:layout>
+			<s:TileLayout requestedColumnCount="2" verticalGap="0" verticalAlign="middle" />
+		</s:layout>
+		<s:FormItem label="">
+			<s:CheckBox label="显示最大化按钮" id="showMaxCheck" selected="false" />
+		</s:FormItem>
+		<s:FormItem label="">
+			<s:CheckBox label="显示最小化按钮" id="showMinCheck" selected="false" />
+		</s:FormItem>
+		<s:FormItem label="">
+			<s:CheckBox label="显示关闭按钮" id="showCloseCheck" selected="true" />
+		</s:FormItem>
+		<s:FormItem label="">
+			<s:Button label="点击弹窗" click="button1_clickHandler(event)"/>
+		</s:FormItem>
+	</s:Form>
+	
+</s:VGroup>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx" rollOver="button1_rollOverHandler(event)"
+		  skinClass="com.best.web.gyorg.library.skin.SingleColorSkin"
+		  >
+	<fx:Metadata>
+		[Style(name="borderVisbile", type="Boolean",defaultValue="false")]
+		[Style(name="cornerRadius", type="Number",defaultValue="1")]
+		[Style(name="backgroundColor", type="uint",defaultValue="#000000")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.best.web.gyorg.library.skin.SingleColorSkin;
+			
+			private var _backgroundColor:uint;
+			public var tip:String;
+			public var hps:String="after";
+//			public function get backgroundColor():uint
+//			{
+//				return _backgroundColor;
+//			}
+//			public function set backgroundColor(value:uint):void
+//			{
+//				_backgroundColor = value;
+//				this.setStyle("chromeColor",value);
+//			}
+			
+			protected function button1_rollOverHandler(event:MouseEvent):void
+			{
+				if(tip){
+//					CalloutTip.openT(this,tip,hps);
+					this.toolTip=tip;
+				}
+			}
+			
+			public override function setFocus():void
+			{
+				super.setFocus();
+				if(!tabEnabled){
+					this.skin.setFocus();
+				}
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+</s:Button>
